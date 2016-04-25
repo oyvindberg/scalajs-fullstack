@@ -1,4 +1,4 @@
-package tutorial.webapp
+package tutorial
 
 import scala.scalajs.js.JSApp
 

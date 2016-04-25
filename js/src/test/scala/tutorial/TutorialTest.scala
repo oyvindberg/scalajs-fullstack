@@ -1,8 +1,7 @@
-package tutorial.webapp
-
-import utest._
+package tutorial
 
 import org.scalajs.jquery.jQuery
+import utest._
 
 object TutorialTest extends TestSuite {
 
