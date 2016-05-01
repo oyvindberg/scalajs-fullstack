@@ -168,3 +168,5 @@ support, as well how to package a project for production.
 
 - [TodoMVC example](http://todomvc.com/examples/scalajs-react/)
 Frontend-only todo application with Scalajs-React
+
+- [Scala.js semantics compared to Scala](http://www.scala-js.org/doc/semantics.html)
