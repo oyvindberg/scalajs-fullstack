@@ -51,8 +51,12 @@ lazy val tutorial: CrossProject =
 
     /* generate javascript launcher */
     persistLauncher in Compile := true,
-    persistLauncher in Test := false
-  )
+    persistLauncher in Test := false,
+
+    /* for workbench */
+    bootSnippet := "tutorial.App().main();"
+
+).jsSettings(workbenchSettings :_*)
 
 lazy val tutorialJvm: Project =
   tutorial.jvm
