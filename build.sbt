@@ -19,7 +19,7 @@ lazy val tutorial: CrossProject =
       "com.lihaoyi" %%% "upickle"   % "0.4.0",
       "com.lihaoyi" %%% "autowire"  % "0.2.5",
       "com.lihaoyi" %%% "scalatags" % "0.5.4",
-      "com.lihaoyi" %%% "utest"     % "0.3.0" % Test
+      "com.lihaoyi" %%% "utest"     % "0.4.3" % Test
     )
   ).jvmSettings(
     /* Normal scala dependencies */

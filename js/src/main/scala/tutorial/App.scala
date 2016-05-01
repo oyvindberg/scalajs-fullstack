@@ -3,16 +3,17 @@ package tutorial
 import autowire._
 import org.scalajs.dom
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.language.implicitConversions
+import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 import scala.scalajs.js
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 import scalatags.JsDom.TypedTag
 import scalatags.JsDom.all._
 import Capture.instances._
 
 object App extends js.JSApp {
+
   /* Entry point */
   override def main(): Unit = {
     /* connect FileBrowser to where we want to render it in the DOM */
@@ -21,30 +22,41 @@ object App extends js.JSApp {
 
     dom.document.body.appendChild(target)
 
-    new FileBrowser(
-      (elem: dom.Element) ⇒ {target.innerHTML = ""; target.appendChild(elem)}
-    )
+    val browser: FileBrowser =
+      new FileBrowser(
+        remoteFetchPaths =
+          path ⇒ AutowireClient[Api].fetchPathsUnder(path).call(),
+
+        replaceDom = (elem: dom.Element) ⇒ {
+          target.innerHTML = ""
+          target.appendChild(elem)
+        }
+      )
+
+    /* render root directory */
+    browser.fetchPathsUnder(Root)
   }
 }
 
 final case class State(wantedPath: Path, result: Try[LookupResult])
 
-final class FileBrowser(replaceDom: dom.Element ⇒ Unit) {
+final class FileBrowser(remoteFetchPaths: Path ⇒ Future[LookupResult],
+                        replaceDom:       dom.Element ⇒ Unit) {
+
   /**
     * We keep old states for caching and easy back navigation
     */
-  private var stateStack: List[State] =
+  var stateStack: List[State] =
     Nil
 
-  /* initialize */
+  /* initial rendering */
   render()
-  fetchPathsUnder(Root)
 
   def render(): Unit = {
     val renderedContent: TypedTag[dom.Element] =
       Renderer(
         stateOpt        = stateStack.headOption,
-        fetchPathsUnder = fetchPathsUnder,
+        fetchPathsUnder = path ⇒ () ⇒ {fetchPathsUnder(path); ()},
         backOpt         = Some(popState _).filter(_ ⇒ stateStack.size > 1)
       )
 
@@ -55,13 +67,16 @@ final class FileBrowser(replaceDom: dom.Element ⇒ Unit) {
   }
 
   /* perform Ajax call and handle result */
-  def fetchPathsUnder(path: Path)(): Unit = {
-    val f: Future[LookupResult] =
-      AutowireClient[Api].fetchPathsUnder(path).call()
+  def fetchPathsUnder(path: Path): Future[Unit] = {
+    val resultF: Future[LookupResult] =
+      remoteFetchPaths(path)
 
-    f onComplete {
-      (resultTry: Try[LookupResult]) ⇒ pushState(State(path, resultTry))
-    }
+    val recoverFT: Future[Try[LookupResult]] =
+      resultF.map(Success.apply).recover {
+        case NonFatal(th) ⇒ Failure(th)
+      }
+
+    recoverFT.map(resTry ⇒ pushState(State(path, resTry)))
   }
 
   def pushState(state: State): Unit = {
@@ -140,7 +155,7 @@ object Renderer {
         h2("Loading")
     }
 
-  def renderAlert(mode:  AlertMode, retry: () ⇒ Unit, xs: Modifier*): TypedTag[dom.html.Div] =
+  def renderAlert(mode: AlertMode, retry: () ⇒ Unit, xs: Modifier*): TypedTag[dom.html.Div] =
     div(`class` := s"alert $mode", renderButton("Retry", retry), xs)
 
   def renderButton(title: String, onClick: () ⇒ Unit): TypedTag[dom.html.Button] =
@@ -148,7 +163,9 @@ object Renderer {
 }
 
 /* This is an example of how to make traditional interfaces more palatable. */
-sealed trait AlertMode
+@js.native
+sealed trait AlertMode extends js.Any
+
 object AlertMode {
   /* these casts are ok because javascript.*/
   val success = "alert-success".asInstanceOf[AlertMode]
