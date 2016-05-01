@@ -21,8 +21,8 @@ object Template {
           content   := "text/html; charset=UTF-8"
         ),
         Seq(
-          "/scala-js-tutorial-jsdeps.js",
-          "/scala-js-tutorial-fastopt.js"
+          "/scala-js-workshop-jsdeps.js",
+          "/scala-js-workshop-fastopt.js"
         ) map scriptTag,
         link(
           rel  := "stylesheet",
@@ -32,7 +32,7 @@ object Template {
       ),
       body(margin := 0),
       Seq(
-        "/scala-js-tutorial-launcher.js",
+        "/scala-js-workshop-launcher.js",
         "//localhost:12345/workbench.js"
       ) map scriptTag
     )

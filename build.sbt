@@ -13,7 +13,7 @@ lazy val tutorial: CrossProject =
   crossProject.in(file("."))
   .settings(commonSettings :_*)
   .settings(
-    name := "Scala.js Workshop",
+    name := "scala-js-workshop",
     /* shared dependencies */
     libraryDependencies ++= Seq(
       "com.lihaoyi" %%% "upickle"   % "0.4.0",
