@@ -51,5 +51,5 @@ class Capture(implicit val pathReader:   Reader[Path],
 
 object Capture {
   val instances: Capture =
-    new Capture()(macroR[Path], macroW[Path], macroR[LookupResult], macroW[LookupResult])
+    new Capture
 }
