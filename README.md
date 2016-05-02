@@ -136,9 +136,10 @@ these are some suggestions for things that could be fun to play with:
  You probably want to use uPickle for serialization
 
 - Breadcrumbs for the parent folders instead of the back button.
+
 ## Resources
 
-[Gitter room](https://gitter.im/scala-js/scala-js)
+- [Scala.js Gitter room](https://gitter.im/scala-js/scala-js)
 Probably the best place for support
 
 ### Talks
