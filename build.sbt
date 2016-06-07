@@ -16,10 +16,12 @@ lazy val tutorial: CrossProject =
     name := "scala-js-workshop",
     /* shared dependencies */
     libraryDependencies ++= Seq(
-      "com.lihaoyi" %%% "upickle"   % "0.4.0",
-      "com.lihaoyi" %%% "autowire"  % "0.2.5",
-      "com.lihaoyi" %%% "scalatags" % "0.5.4",
-      "com.lihaoyi" %%% "utest"     % "0.4.3" % Test
+      "com.github.japgolly.scalacss" %%% "core"          % "0.4.1",
+      "com.github.japgolly.scalacss" %%% "ext-scalatags" % "0.4.1",
+      "com.lihaoyi"                  %%% "upickle"       % "0.4.0",
+      "com.lihaoyi"                  %%% "autowire"      % "0.2.5",
+      "com.lihaoyi"                  %%% "scalatags"     % "0.5.4",
+      "com.lihaoyi"                  %%% "utest"         % "0.4.3" % Test
     )
   ).jvmSettings(
     /* Normal scala dependencies */

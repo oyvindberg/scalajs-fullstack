@@ -11,6 +11,10 @@ import scala.util.{Failure, Success, Try}
 import scalatags.JsDom.TypedTag
 import scalatags.JsDom.all._
 import Capture.instances._
+import org.scalajs.dom.raw.HTMLStyleElement
+
+import scalacss.Defaults._
+import scalacss.ScalatagsCss._
 
 object App extends js.JSApp {
 
@@ -19,6 +23,11 @@ object App extends js.JSApp {
     /* connect FileBrowser to where we want to render it in the DOM */
     val target: dom.html.Div =
       div().render
+
+    /* outputs all the styles */
+    dom.document.head.appendChild(
+      Styles.render[TypedTag[HTMLStyleElement]].render
+    )
 
     dom.document.body.appendChild(target)
 
@@ -106,7 +115,8 @@ object Renderer {
     stateOpt match {
       case Some(State(path, res)) ⇒
         div(
-          `class` := "panel panel-default",
+          /* reference a style */
+          Styles.myStyle,
           div(
             `class` := "panel-heading",
             h1("Currently browsing ", path.toString),
