@@ -1,11 +1,10 @@
 package tutorial
 
-import scala.language.postfixOps
-import scalacss.Defaults._
-import scalacss.StyleA
+import CssSettings._
 
 /* Scalacss example */
 object Styles extends StyleSheet.Inline {
+
   import dsl._
 
   /* mixin - doesnt get a classname */

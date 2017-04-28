@@ -10,10 +10,9 @@ import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 import scalatags.JsDom.TypedTag
 import scalatags.JsDom.all._
-import Capture.instances._
 import org.scalajs.dom.raw.HTMLStyleElement
 
-import scalacss.Defaults._
+import CssSettings._
 import scalacss.ScalatagsCss._
 
 object App extends js.JSApp {

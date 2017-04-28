@@ -1,7 +1,4 @@
-# sbt target folders
 target/
-
-# eclipse project files
-/.settings
-/.classpath
-/.project
+.idea
+.DS_Store
+node_modules

@@ -10,7 +10,6 @@ import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
-import Capture.instances._
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
@@ -35,7 +34,7 @@ object AkkaHttpServer extends App {
       `Access-Control-Max-Age`(1728000)
     )
 
-  /* serve index template and static resoruces */
+  /* serve index template and static resources */
   val indexRoute: Route =
     get {
       pathSingleSlash {
@@ -45,7 +44,7 @@ object AkkaHttpServer extends App {
             Template.asText
           )
         }
-      } ~ getFromDirectory("../js/target/scala-2.11/") ~ getFromResourceDirectory("")
+      } ~ getFromDirectory("../js/target/scala-2.12/") ~ getFromResourceDirectory("")
     } ~ options{
       complete(
         HttpResponse(

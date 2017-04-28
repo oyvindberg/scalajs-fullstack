@@ -20,19 +20,16 @@ object Template {
           httpEquiv := "Content-Type",
           content   := "text/html; charset=UTF-8"
         ),
-        Seq(
-          "/scala-js-workshop-jsdeps.js",
-          "/scala-js-workshop-fastopt.js"
-        ) map scriptTag,
+        scriptTag("/scala-js-workshop-jsdeps.js"),
         link(
           rel  := "stylesheet",
           tpe  := "text/css",
-          href := "META-INF/resources/webjars/bootstrap/3.3.5/css/bootstrap.min.css"
+          href := "META-INF/resources/webjars/bootstrap/3.3.7/css/bootstrap.min.css"
         )
       ),
       body(margin := 0),
       Seq(
-        "/scala-js-workshop-launcher.js",
+        "/scala-js-workshop-fastopt.js",
         "//localhost:12345/workbench.js"
       ) map scriptTag
     )
