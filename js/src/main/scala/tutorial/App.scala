@@ -32,9 +32,7 @@ object App extends js.JSApp {
 
     val browser: FileBrowser =
       new FileBrowser(
-        remoteFetchPaths =
-          path ⇒ AutowireClient[Api].fetchPathsUnder(path).call(),
-
+        remoteFetchPaths = path ⇒ AutowireClient[Api].fetchPathsUnder(path).call(),
         replaceDom = (elem: dom.Element) ⇒ {
           target.innerHTML = ""
           target.appendChild(elem)
@@ -63,9 +61,9 @@ final class FileBrowser(remoteFetchPaths: Path ⇒ Future[LookupResult],
   def render(): Unit = {
     val renderedContent: TypedTag[dom.Element] =
       Renderer(
-        stateOpt        = stateStack.headOption,
-        fetchPathsUnder = path ⇒ () ⇒ {fetchPathsUnder(path); ()},
-        backOpt         = Some(popState _).filter(_ ⇒ stateStack.size > 1)
+        stateOpt = stateStack.headOption,
+        fetchPathsUnder = path ⇒ () ⇒ { fetchPathsUnder(path); () },
+        backOpt = Some(popState _).filter(_ ⇒ stateStack.size > 1)
       )
 
     val domContent: dom.Element =
@@ -99,6 +97,7 @@ final class FileBrowser(remoteFetchPaths: Path ⇒ Future[LookupResult],
 }
 
 object Renderer {
+
   /**
     * Render current state without side-effects
     *
@@ -110,7 +109,6 @@ object Renderer {
   def apply(stateOpt:        Option[State],
             fetchPathsUnder: Path ⇒ () ⇒ Unit,
             backOpt:         Option[() ⇒ Unit]): TypedTag[dom.Element] =
-
     stateOpt match {
       case Some(State(path, res)) ⇒
         div(
@@ -132,21 +130,20 @@ object Renderer {
                 div(
                   `class` := "list-group",
                   div(
-                    dirs map (dir ⇒
-                      button(dir.name,
-                        `type` := "button",
-                        `class` := "list-group-item",
-                        onclick := fetchPathsUnder(dir)
-                      )
-                    )
+                    dirs map (
+                        dir ⇒
+                          button(dir.name,
+                                 `type` := "button",
+                                 `class` := "list-group-item",
+                                 onclick := fetchPathsUnder(dir)))
                   ),
-                  files map (file ⇒
-                    span(
-                      `class` := "list-group-item",
-                      span(`class` := "glyphicon glyphicon-file"),
-                      file.name
-                    )
-                  )
+                  files map (
+                      file ⇒
+                        span(
+                          `class` := "list-group-item",
+                          span(`class` := "glyphicon glyphicon-file"),
+                          file.name
+                        ))
                 )
 
               case Success(LookupAccessDenied) ⇒
@@ -156,7 +153,10 @@ object Renderer {
                 renderAlert(AlertMode.warning, fetchPathsUnder(path), s"Path $name not found")
 
               case Failure(throwable) ⇒
-                renderAlert(AlertMode.danger, fetchPathsUnder(path), "Unexpected error: ", throwable.getMessage)
+                renderAlert(AlertMode.danger,
+                            fetchPathsUnder(path),
+                            "Unexpected error: ",
+                            throwable.getMessage)
             }
           )
         )
@@ -168,7 +168,7 @@ object Renderer {
     div(`class` := s"alert $mode", renderButton("Retry", retry), xs)
 
   def renderButton(title: String, onClick: () ⇒ Unit): TypedTag[dom.html.Button] =
-    button(title, `type`  := "button", `class` := "btn, btn-group", onclick := onClick)
+    button(title, `type` := "button", `class` := "btn, btn-group", onclick := onClick)
 }
 
 /* This is an example of how to make traditional interfaces more palatable. */

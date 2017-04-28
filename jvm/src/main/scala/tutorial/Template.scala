@@ -18,12 +18,12 @@ object Template {
         title("Example Scala.js application"),
         meta(
           httpEquiv := "Content-Type",
-          content   := "text/html; charset=UTF-8"
+          content := "text/html; charset=UTF-8"
         ),
         scriptTag("/scala-js-workshop-jsdeps.js"),
         link(
-          rel  := "stylesheet",
-          tpe  := "text/css",
+          rel := "stylesheet",
+          tpe := "text/css",
           href := "META-INF/resources/webjars/bootstrap/3.3.7/css/bootstrap.min.css"
         )
       ),
