@@ -2,13 +2,14 @@
 
 [![Join the chat at https://gitter.im/oyvindberg/scalajs-workshop](https://badges.gitter.im/oyvindberg/scalajs-workshop.svg)](https://gitter.im/oyvindberg/scalajs-workshop?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-##TLDR
+## TLDR
 ```
 git clone https://github.com/oyvindberg/scalajs-workshop.git
 cd scalajs-workshop
 ./sbt
-~;tutorialJVM/re-start;tutorialJS/fastOptJS;tutorialJS/refreshBrowsers
+dev
 ```
+
 Application served at [http://localhost:8080](http://localhost:8080)
 Look at **Suggestions** at the bottom
 
@@ -54,8 +55,8 @@ This is slower, but output file size drops from several megabytes to hundreds of
 
 Usage is just running either of those commands:
 ```
-sbt> tutorialJS/fastOptJS
-sbt> tutorialJS/fullOptJS
+sbt> fastOptJS
+sbt> fullOptJS
 ```
 
 #### Resulting files
@@ -91,20 +92,30 @@ sbt> re-status
 
 # continuously restart server on changed code
 sbt> ~tutorialJVM/restart
+
+# alias
+sbt> devBack
 ```
 
-For the frontend we use [workbench](https://github.com/oyvindberg/workbench).
+For the frontend we use [workbench](https://github.com/lihaoyi/workbench).
 This works by redirecting messages from sbt to the browser so you can see the project
 (not) compile, and automatically have the browser window reloaded on successful compilation.
 
 Usage is again very simple:
 ```
 sbt> ~;tutorialJS/fastOptJS;tutorialJS/refreshBrowsers
+
+# alias
+sbt> devFront
 ```
 
-If you need both, this snippet should do it:
+If you make changes both on client and server side, this snippet should do it:
 ```
 sbt> ~;tutorialJVM/re-start;tutorialJS/fastOptJS;tutorialJS/refreshBrowsers
+
+# alias
+sbt> dev
+
 ```
 Note that there is no synchronization between the two restarts, so
  it's possible that the client will reload just as the server is restarting.
