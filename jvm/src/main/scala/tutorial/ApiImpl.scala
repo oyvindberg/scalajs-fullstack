@@ -4,43 +4,36 @@ import java.io.File
 
 case class ApiImpl(sandbox: File) extends Api {
 
-  override def fetchPathsUnder(path: Path): LookupResult =
+  override def fetchPathsUnder(path: PathRef): Either[LookupError, Seq[PathRef]] =
     parsePathToFile(path) match {
       case Left(notFound) ⇒
-        notFound
+        Left(notFound)
+
       //lets pretend this is good enough
       case Right(file) if file.getAbsolutePath.startsWith(sandbox.getAbsolutePath) ⇒
         val filesUnder: Seq[File] =
           Option(file.list()).toSeq.flatten.map(new File(file, _))
 
-        LookupOk(
-          directories = filesUnder
-            .collect {
-              case f if f.isDirectory ⇒ DirPath(path, f.getName)
-            }
-            .sortBy(_.name),
-          files = filesUnder
-            .collect {
-              case f if f.isFile ⇒ FilePath(path, f.getName)
-            }
-            .sortBy(_.name)
-        )
+        Right(filesUnder.map {
+          case f if f.isDirectory ⇒ DirRef(path, f.getName)
+          case f if f.isFile ⇒ FileRef(path, f.getName)
+        }.sortBy(_.name))
 
       case outsideSandbox ⇒
-        LookupAccessDenied
+        Left(LookupAccessDenied)
     }
 
-  def parsePathToFile(loc: Path): Either[LookupNotFound, File] =
+  def parsePathToFile(loc: PathRef): Either[LookupNotFound, File] =
     loc match {
-      case Root ⇒
+      case RootRef ⇒
         Right(sandbox)
-      case FilePath(parent, name) ⇒
+      case FileRef(parent, name) ⇒
         existingFile(parent, name)
-      case DirPath(parent, name) ⇒
+      case DirRef(parent, name) ⇒
         existingFile(parent, name)
     }
 
-  def existingFile(parent: Path, name: String): Either[LookupNotFound, File] =
+  def existingFile(parent: PathRef, name: String): Either[LookupNotFound, File] =
     parsePathToFile(parent).right.flatMap { parentFile ⇒
       new File(parentFile, name) match {
         case f if f.exists ⇒

@@ -10,7 +10,7 @@ import scalatags.JsDom.all._
 
 object FileBrowserTest extends TestSuite {
 
-  val IgnoreLookups: Path ⇒ () ⇒ Unit =
+  val IgnoreLookups: PathRef ⇒ () ⇒ Unit =
     path ⇒ () ⇒ ()
 
   def tests: Tree[Test] =
@@ -23,16 +23,16 @@ object FileBrowserTest extends TestSuite {
         var rendered: List[dom.Element] =
           Nil
 
-        val SubDir: DirPath =
-          DirPath(Root, "sub")
+        val SubDir: DirRef =
+          DirRef(RootRef, "sub")
 
-        val mockServer: Path ⇒ LookupResult = {
-          case Root ⇒
-            LookupOk(directories = Seq(SubDir), files = Seq.empty)
+        val mockServer: PathRef ⇒ Either[LookupError, Seq[PathRef]] = {
+          case RootRef ⇒
+            Right(Seq(SubDir))
           case SubDir ⇒
-            LookupOk(Seq.empty, Seq.empty)
+            Right(Seq.empty)
           case other ⇒
-            LookupAccessDenied
+            Left(LookupAccessDenied)
         }
 
         val browser: FileBrowser =
@@ -42,7 +42,7 @@ object FileBrowserTest extends TestSuite {
           )
 
         for {
-          _ ← browser.fetchPathsUnder(Root)
+          _ ← browser.fetchPathsUnder(RootRef)
           _ ← browser.fetchPathsUnder(SubDir)
         } {
 
