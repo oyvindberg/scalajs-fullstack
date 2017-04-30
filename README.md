@@ -1,4 +1,4 @@
-# Scala.js workshop at flatMap(Oslo) 2016
+# Scala.js workshop at flatMap(Oslo) 2017
 
 [![Join the chat at https://gitter.im/oyvindberg/scalajs-workshop](https://badges.gitter.im/oyvindberg/scalajs-workshop.svg)](https://gitter.im/oyvindberg/scalajs-workshop?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
