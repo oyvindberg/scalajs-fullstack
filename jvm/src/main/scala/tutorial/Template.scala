@@ -28,10 +28,7 @@ object Template {
         )
       ),
       body(margin := 0),
-      Seq(
-        "/scala-js-workshop-fastopt.js",
-        "//localhost:12345/workbench.js"
-      ) map scriptTag
+      scriptTag("/scala-js-workshop-fastopt.js")
     )
 
   val asText: String =
