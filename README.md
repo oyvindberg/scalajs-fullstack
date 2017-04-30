@@ -121,6 +121,15 @@ Note that there is no synchronization between the two restarts, so
  it's possible that the client will reload just as the server is restarting.
 In that case, simply reload the browser.
 
+
+## Testing
+Test code is transpiled and then executed on Node.js, which you need to install 
+on your system if you want to run tests.
+ 
+Additionally, it is recommended to install `jsdom` and `source-map-support` for a fake DOM and source map-support.
+
+Just run `yarn install` / `npm install` in this folder.
+
 ## Suggestions
 
 The workshop is very much open ended,
