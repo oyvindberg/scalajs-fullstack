@@ -36,8 +36,14 @@ lazy val tutorial: CrossProject =
         "com.typesafe.akka" %% "akka-http" % "10.0.5",
         /* we include this because the server serves CSS from the classpath. Not a good solution! */
         WebJars.bootstrap
-      )
+      ),
+      WebKeys.packagePrefix in Assets := "public/",
+      managedClasspath in Runtime += (packageBin in Assets).value,
+      pipelineStages in Assets := Seq(scalaJSPipeline),
+      scalaJSProjects := Seq(tutorialJs)
     )
+    .jvmConfigure(_.enablePlugins(SbtWeb))
+    .jsConfigure(_ enablePlugins ScalaJSWeb)
     .jsSettings(
       /* scala.js dependencies */
       libraryDependencies ++= Seq(
@@ -55,7 +61,11 @@ lazy val tutorial: CrossProject =
       /* uTest settings*/
       testFrameworks += new TestFramework("utest.runner.Framework"),
       /* generate javascript launcher */
-      scalaJSUseMainModuleInitializer := true
+      scalaJSUseMainModuleInitializer := true,
+
+      /* change so both fastOptJS and fullOptJS artifacts have same name */
+      artifactPath in (Compile, fastOptJS) :=
+        ((crossTarget in (Compile, fastOptJS)).value / ((moduleName in fastOptJS).value + "-opt.js"))
     )
 
 lazy val tutorialJvm: Project =
