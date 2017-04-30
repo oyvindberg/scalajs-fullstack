@@ -1,6 +1,7 @@
 import org.scalajs.sbtplugin.cross.CrossProject
 
 enablePlugins(ScalaJSPlugin)
+enablePlugins(WorkbenchPlugin)
 
 lazy val commonSettings: Seq[Def.Setting[_]] =
   Seq(
@@ -38,8 +39,14 @@ lazy val tutorial: CrossProject =
         "com.typesafe.akka" %% "akka-http" % "10.0.5",
         /* we include this because the server serves CSS from the classpath. Not a good solution! */
         WebJars.bootstrap
-      )
+      ),
+      WebKeys.packagePrefix in Assets := "public/",
+      managedClasspath in Runtime += (packageBin in Assets).value,
+      pipelineStages in Assets := Seq(scalaJSPipeline),
+      scalaJSProjects := Seq(tutorialJs)
     )
+    .jvmConfigure(_.enablePlugins(SbtWeb))
+    .jsConfigure(_ enablePlugins ScalaJSWeb)
     .jsSettings(
       /* scala.js dependencies */
       libraryDependencies ++= Seq(
@@ -57,11 +64,8 @@ lazy val tutorial: CrossProject =
       /* uTest settings*/
       testFrameworks += new TestFramework("utest.runner.Framework"),
       /* generate javascript launcher */
-      scalaJSUseMainModuleInitializer := true,
-      /* for workbench */
-      bootSnippet := "tutorial.App().main();"
+      scalaJSUseMainModuleInitializer := true
     )
-    .jsSettings(workbenchSettings: _*)
 
 lazy val tutorialJvm: Project =
   tutorial.jvm

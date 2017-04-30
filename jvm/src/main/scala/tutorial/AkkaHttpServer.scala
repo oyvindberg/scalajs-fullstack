@@ -10,6 +10,7 @@ import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
+import ScalatagsHandler._
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
@@ -37,15 +38,18 @@ object AkkaHttpServer extends App {
 
   /* serve index template and static resources */
   val indexRoute: Route =
+    pathPrefix("js"){
+      getFromResourceDirectory("public")
+    } ~
+    pathPrefix("img") {
+      getFromResourceDirectory("public/img")
+    } ~
     get {
       pathSingleSlash {
         complete {
-          HttpEntity(
-            ContentTypes.`text/html(UTF-8)`,
-            Template.asText
-          )
+          Template.asScalaTags
         }
-      } ~ getFromDirectory("../js/target/scala-2.12/") ~ getFromResourceDirectory("")
+      } ~ getFromResourceDirectory("")
     } ~ options {
       complete(
         HttpResponse(
