@@ -40,13 +40,13 @@ object App extends js.JSApp {
       )
 
     /* render root directory */
-    browser.fetchPathsUnder(Root)
+    browser.fetchPathsUnder(RootRef)
   }
 }
 
-final case class State(wantedPath: Path, result: Try[LookupResult])
+final case class State(wantedPath: PathRef, result: Try[Either[LookupError, Seq[PathRef]]])
 
-final class FileBrowser(remoteFetchPaths: Path ⇒ Future[LookupResult],
+final class FileBrowser(remoteFetchPaths: PathRef ⇒ Future[Either[LookupError, Seq[PathRef]]],
                         replaceDom:       dom.Element ⇒ Unit) {
 
   /**
@@ -73,13 +73,13 @@ final class FileBrowser(remoteFetchPaths: Path ⇒ Future[LookupResult],
   }
 
   /* perform Ajax call and handle result */
-  def fetchPathsUnder(path: Path): Future[Unit] = {
-    val resultF: Future[LookupResult] =
+  def fetchPathsUnder(path: PathRef): Future[Unit] = {
+    val resultF: Future[Either[LookupError, Seq[PathRef]]] =
       remoteFetchPaths(path)
 
-    val recoverFT: Future[Try[LookupResult]] =
+    val recoverFT: Future[Try[Either[LookupError, Seq[PathRef]]]] =
       resultF.map(Success.apply).recover {
-        case NonFatal(th) ⇒ Failure(th)
+        case NonFatal(e) ⇒ Failure(e)
       }
 
     recoverFT.map(resTry ⇒ pushState(State(path, resTry)))
@@ -107,7 +107,7 @@ object Renderer {
     * @return dom element to be rendered
     */
   def apply(stateOpt:        Option[State],
-            fetchPathsUnder: Path ⇒ () ⇒ Unit,
+            fetchPathsUnder: PathRef ⇒ () ⇒ Unit,
             backOpt:         Option[() ⇒ Unit]): TypedTag[dom.Element] =
     stateOpt match {
       case Some(State(path, res)) ⇒
@@ -126,30 +126,32 @@ object Renderer {
           div(
             `class` := "panel-body",
             res match {
-              case Success(LookupOk(dirs, files)) ⇒
+              case Success(Right(refs)) ⇒
                 div(
                   `class` := "list-group",
                   div(
-                    dirs map (
-                        dir ⇒
-                          button(dir.name,
-                                 `type` := "button",
-                                 `class` := "list-group-item",
-                                 onclick := fetchPathsUnder(dir)))
-                  ),
-                  files map (
-                      file ⇒
+                    refs.collect {
+                      case dir: DirRef ⇒
+                        button(dir.name,
+                               `type` := "button",
+                               `class` := "list-group-item",
+                               onclick := fetchPathsUnder(dir))
+                    },
+                    refs.collect {
+                      case file: FileRef ⇒
                         span(
                           `class` := "list-group-item",
                           span(`class` := "glyphicon glyphicon-file"),
                           file.name
-                        ))
+                        )
+                    }
+                  )
                 )
 
-              case Success(LookupAccessDenied) ⇒
+              case Success(Left(LookupAccessDenied)) ⇒
                 renderAlert(AlertMode.warning, fetchPathsUnder(path), "Access denied")
 
-              case Success(LookupNotFound(name)) ⇒
+              case Success(Left(LookupNotFound(name))) ⇒
                 renderAlert(AlertMode.warning, fetchPathsUnder(path), s"Path $name not found")
 
               case Failure(throwable) ⇒

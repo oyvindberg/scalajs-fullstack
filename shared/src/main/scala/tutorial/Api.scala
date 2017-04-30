@@ -4,29 +4,29 @@ package tutorial
   * The shared API for the application
   */
 trait Api {
-  def fetchPathsUnder(dir: Path): LookupResult
+  def fetchPathsUnder(dir: PathRef): Either[LookupError, Seq[PathRef]]
 }
 
-sealed trait Path {
+sealed trait PathRef {
+  def name: String
   override final def toString: String = {
-    def go(loc: Path): List[String] =
+    def go(loc: PathRef): List[String] =
       loc match {
-        case DirPath(parent, name)  ⇒ name :: go(parent)
-        case FilePath(parent, name) ⇒ name :: go(parent)
-        case Root                   ⇒ Nil
+        case DirRef(parent, name)  ⇒ name :: go(parent)
+        case FileRef(parent, name) ⇒ name :: go(parent)
+        case RootRef               ⇒ Nil
       }
 
     go(this).reverse.mkString("/", "/", "")
   }
 }
 
-final case class DirPath(parent:  Path, name: String) extends Path
-final case class FilePath(parent: Path, name: String) extends Path
-case object Root extends Path
+final case class DirRef(parent:  PathRef, name: String) extends PathRef
+final case class FileRef(parent: PathRef, name: String) extends PathRef
+case object RootRef extends PathRef {
+  val name = "/"
+}
 
-sealed trait LookupResult
-final case class LookupOk(directories: Seq[DirPath], files: Seq[FilePath]) extends LookupResult
-final case class LookupNotFound(name:  String) extends LookupResult
-case object LookupAccessDenied extends LookupResult
-
-case class ErrorMsg(value: String) extends AnyVal
+sealed trait LookupError
+final case class LookupNotFound(name:  String) extends LookupError
+case object LookupAccessDenied extends LookupError

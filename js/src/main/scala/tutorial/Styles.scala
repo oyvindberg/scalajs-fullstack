@@ -9,7 +9,7 @@ object Styles extends StyleSheet.Inline {
 
   /* mixin - doesnt get a classname */
   val common = mixin(
-    backgroundColor.mediumaquamarine
+    backgroundColor.whitesmoke
   )
 
   val myStyle = style(

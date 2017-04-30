@@ -24,7 +24,7 @@ object Template {
         link(
           rel := "stylesheet",
           tpe := "text/css",
-          href := "META-INF/resources/webjars/bootstrap/3.3.7/css/bootstrap.min.css"
+          href := "META-INF/resources/webjars/bootstrap/3.3.5/css/bootstrap.min.css"
         )
       ),
       body(margin := 0),
