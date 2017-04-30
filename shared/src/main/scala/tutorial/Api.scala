@@ -4,7 +4,7 @@ package tutorial
   * The shared API for the application
   */
 trait Api {
-  def fetchPathsUnder(dir: PathRef): Either[LookupError, Seq[PathRef]]
+  def fetchPathsUnder(dir: PathRef): Seq[PathRef]
 }
 
 sealed trait PathRef {

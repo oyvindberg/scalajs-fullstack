@@ -20,7 +20,7 @@ object Template {
           httpEquiv := "Content-Type",
           content := "text/html; charset=UTF-8"
         ),
-        scriptTag("/scala-js-workshop-jsdeps.js"),
+        scriptTag("/js/scala-js-workshop-jsdeps.js"),
         link(
           rel := "stylesheet",
           tpe := "text/css",
@@ -28,8 +28,11 @@ object Template {
         )
       ),
       body(margin := 0),
+      header(
+        img(src := "img/logo.svg")
+      ),
       Seq(
-        "/scala-js-workshop-fastopt.js",
+        "/js/scala-js-workshop-fastopt.js",
         "//localhost:12345/workbench.js"
       ) map scriptTag
     )

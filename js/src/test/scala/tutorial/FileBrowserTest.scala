@@ -16,7 +16,7 @@ object FileBrowserTest extends TestSuite {
   def tests: Tree[Test] =
     TestSuite {
       'RenderLoadingScreen {
-        assert(Renderer(None, IgnoreLookups, None) == h2("Loading"))
+        assert(FileListRenderer(None, IgnoreLookups, None) == h2("Loading"))
       }
 
       'CanNavigateAndRenderCorrectly {
