@@ -2,31 +2,38 @@ package tutorial
 
 import autowire._
 import org.scalajs.dom
+import org.scalajs.dom.raw.{HTMLScriptElement, HTMLStyleElement}
+import tutorial.CssSettings._
 
 import scala.concurrent.Future
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
-import scala.scalajs.js
+import scala.scalajs.{js, LinkingInfo}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
+import scalacss.ScalatagsCss._
 import scalatags.JsDom.TypedTag
 import scalatags.JsDom.all._
-import org.scalajs.dom.raw.HTMLStyleElement
-
-import CssSettings._
-import scalacss.ScalatagsCss._
 
 object App extends js.JSApp {
 
   /* Entry point */
   override def main(): Unit = {
-    /* connect FileBrowser to where we want to render it in the DOM */
-    val target: dom.html.Div =
-      div().render
+
+    if (LinkingInfo.developmentMode) {
+      val script = dom.document.createElement("script").asInstanceOf[HTMLScriptElement]
+      script.`type` = "text/javascript"
+      script.src = "//localhost:12345/workbench.js"
+      dom.document.head.appendChild(script)
+    }
 
     /* outputs all the styles */
     dom.document.head.appendChild(
       Styles.render[TypedTag[HTMLStyleElement]].render
     )
+
+    /* connect FileBrowser to where we want to render it in the DOM */
+    val target: dom.html.Div =
+      div().render
 
     dom.document.body.appendChild(target)
 
@@ -151,7 +158,7 @@ object Renderer {
               case Success(Left(LookupAccessDenied)) ⇒
                 renderAlert(AlertMode.warning, fetchPathsUnder(path), "Access denied")
 
-              case Success(Left(LookupNotFound(name))) ⇒
+              case Success(Left(LookupNotFound)) ⇒
                 renderAlert(AlertMode.warning, fetchPathsUnder(path), s"Path $name not found")
 
               case Failure(throwable) ⇒
