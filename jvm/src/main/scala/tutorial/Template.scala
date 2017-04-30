@@ -28,6 +28,9 @@ object Template {
         )
       ),
       body(margin := 0),
+      header(
+        img(src := "img/logo.svg")
+      ),
       Seq(
         "/js/scala-js-workshop-fastopt.js",
         "//localhost:12345/workbench.js"
