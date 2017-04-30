@@ -9,8 +9,8 @@ import scalatags.Text.tags2.title
   *  renders as `String`, because we import from `scalatags.Text`.
   */
 object Template {
-  def scriptTag(s: String): Frag =
-    script(`type` := "text/javascript", src := s"/js/$s")
+  def scriptTag(s: String): TypedTag[String] =
+    script(`type` := "text/javascript", src := s)
 
   val asScalaTags: TypedTag[String] =
     html(
@@ -20,20 +20,18 @@ object Template {
           httpEquiv := "Content-Type",
           content := "text/html; charset=UTF-8"
         ),
-        Seq(
-          "scala-js-workshop-jsdeps.js",
-          "scala-js-workshop-opt.js",
-          "scala-js-workshop-fastopt.js",
-          "scala-js-workshop-launcher.js").map(scriptTag),
+        scriptTag("/js/scala-js-workshop-jsdeps.js"),
         link(
           rel := "stylesheet",
           tpe := "text/css",
-          href := "META-INF/resources/webjars/bootstrap/3.3.7/css/bootstrap.min.css"
+          href := "META-INF/resources/webjars/bootstrap/3.3.5/css/bootstrap.min.css"
         )
       ),
       body(margin := 0),
-      script(`type` := "text/javascript", src := "//localhost:12345/workbench.js")
-
+      Seq(
+        "/js/scala-js-workshop-fastopt.js",
+        "//localhost:12345/workbench.js"
+      ) map scriptTag
     )
 
   val asText: String =

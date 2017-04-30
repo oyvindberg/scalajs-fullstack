@@ -1,7 +1,6 @@
 import org.scalajs.sbtplugin.cross.CrossProject
 
 enablePlugins(ScalaJSPlugin)
-enablePlugins(WorkbenchPlugin)
 
 lazy val commonSettings: Seq[Def.Setting[_]] =
   Seq(
@@ -71,7 +70,10 @@ lazy val tutorialJvm: Project =
   tutorial.jvm
 
 lazy val tutorialJs: Project =
-  tutorial.js
+  tutorial.js.enablePlugins(WorkbenchPlugin)
+
+def addCommandAliases(m: (String, String)*): Project => Project =
+  _.settings(m.map(p => addCommandAlias(p._1, p._2)).reduce(_ ++ _): _*)
 
 lazy val root: Project =
   project
@@ -79,6 +81,12 @@ lazy val root: Project =
     .aggregate(tutorialJs, tutorialJvm)
     .settings(commonSettings: _*)
     .settings(
+      name := "scalajs-workshop-root",
       publish := {},
       publishLocal := {}
     )
+    .configure(addCommandAliases(
+      "dev"      -> "~;tutorialJVM/re-start;tutorialJS/fastOptJS;refreshBrowsers",
+      "devFront" -> "~;tutorialJS/fastOptJS;refreshBrowsers",
+      "devBack"  -> "~;tutorialJVM/re-start"
+    ))

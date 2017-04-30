@@ -51,22 +51,16 @@ object AkkaHttpServer extends App {
         }
       } ~ getFromResourceDirectory("")
     } ~ options {
-      complete(
-        HttpResponse(
-          headers = corsHeaders
-        )
-      )
+      complete(HttpResponse(headers = corsHeaders))
     }
 
   val impl: ApiImpl =
     ApiImpl(new File(".."))
 
   val bindingFuture: Future[ServerBinding] =
-    Http().bindAndHandle(
-      indexRoute ~ AutowireAkkaHttpRoute("api", _.route[Api](impl)),
-      "0.0.0.0",
-      8080
-    )
+    Http().bindAndHandle(indexRoute ~ AutowireAkkaHttpRoute("api", _.route[Api](impl)),
+                         "0.0.0.0",
+                         8080)
 
   bindingFuture.foreach { (sb: ServerBinding) ⇒
     println(s"Server online at ${sb.localAddress}")
