@@ -8,8 +8,7 @@ import tutorial.CssSettings._
 import scala.concurrent.Future
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 import scala.scalajs.{js, LinkingInfo}
-import scala.util.control.NonFatal
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 import scalacss.ScalatagsCss._
 import scalatags.JsDom.TypedTag
 import scalatags.JsDom.all._
@@ -44,80 +43,61 @@ object App extends js.JSApp {
           target.innerHTML = ""
           target.appendChild(elem)
         }
-      )
+
+    dom.document.body.appendChild(browser.render)
 
     /* render root directory */
     browser.fetchPathsUnder(RootRef)
   }
 }
 
-final case class State(wantedPath: PathRef, result: Try[Either[LookupError, Seq[PathRef]]])
+final case class State(wantedPath: PathRef, result: Seq[PathRef])
 
-final class FileBrowser(remoteFetchPaths: PathRef ⇒ Future[Either[LookupError, Seq[PathRef]]],
-                        replaceDom:       dom.Element ⇒ Unit) {
+final class FileBrowser(remoteFetchPaths: PathRef ⇒ Future[Seq[PathRef]]) {
 
   /**
     * We keep old states for caching and easy back navigation
     */
-  var stateStack: List[State] =
-    Nil
+  private var stateStack: List[State] = Nil
 
-  /* initial rendering */
-  render()
+  private val rootDom = div().render
 
-  def render(): Unit = {
-    val renderedContent: TypedTag[dom.Element] =
-      Renderer(
-        stateOpt = stateStack.headOption,
-        fetchPathsUnder = path ⇒ () ⇒ { fetchPathsUnder(path); () },
-        backOpt = Some(popState _).filter(_ ⇒ stateStack.size > 1)
-      )
-
-    val domContent: dom.Element =
-      renderedContent.render
-
-    replaceDom(domContent)
+  def render(): dom.Node = {
+    rootDom
   }
 
   /* perform Ajax call and handle result */
-  def fetchPathsUnder(path: PathRef): Future[Unit] = {
-    val resultF: Future[Either[LookupError, Seq[PathRef]]] =
-      remoteFetchPaths(path)
-
-    val recoverFT: Future[Try[Either[LookupError, Seq[PathRef]]]] =
-      resultF.map(Success.apply).recover {
-        case NonFatal(e) ⇒ Failure(e)
-      }
-
-    recoverFT.map(resTry ⇒ pushState(State(path, resTry)))
+  def fetchPathsUnder(path: PathRef): Unit = {
+    remoteFetchPaths(path).onComplete{
+      case Success(resTry) ⇒
+        pushState(State(path, resTry))
+      case Failure(throwable) ⇒
+        renderAlert(AlertMode.danger,
+          () => fetchPathsUnder(path),
+          "Unexpected error: ",
+          throwable.getMessage)
+    }
   }
 
   def pushState(state: State): Unit = {
-    stateStack = state :: stateStack.dropWhile(old ⇒ old.result.isFailure || old == state)
-    render()
+    stateStack = state :: stateStack
+    renderFileList()
   }
 
   def popState(): Unit = {
-    stateStack = stateStack.tail
-    render()
+    stateStack = stateStack match {
+      case Nil => Nil
+      case _ :: tail => tail
+    }
+    renderFileList()
   }
-}
 
-object Renderer {
+  private def renderAlert(mode: AlertMode, retry: () ⇒ Unit, xs: Modifier*): Tag =
+    div(`class` := s"alert $mode", renderButton("Retry", retry), xs)
 
-  /**
-    * Render current state without side-effects
-    *
-    * @param stateOpt current state, if any
-    * @param fetchPathsUnder callback for fetching the subpaths under a path
-    * @param backOpt optional callback for returning to previous state
-    * @return dom element to be rendered
-    */
-  def apply(stateOpt:        Option[State],
-            fetchPathsUnder: PathRef ⇒ () ⇒ Unit,
-            backOpt:         Option[() ⇒ Unit]): TypedTag[dom.Element] =
-    stateOpt match {
-      case Some(State(path, res)) ⇒
+  private def renderFileList(): Unit = {
+    val content = stateStack.headOption match {
+      case Some(State(path, refs)) ⇒
         div(
           /* reference a style */
           Styles.myStyle,
@@ -126,57 +106,44 @@ object Renderer {
             h1("Currently browsing ", path.toString),
             div(
               `class` := "btn-toolbar",
-              backOpt.map(back ⇒ renderButton("Back", back)),
-              renderButton("Refresh", fetchPathsUnder(path))
+              Option(renderButton("Back", () => popState())).filter(_ => stateStack.size >= 2),
+              renderButton("Refresh", () => fetchPathsUnder(path))
             )
           ),
           div(
             `class` := "panel-body",
-            res match {
-              case Success(Right(refs)) ⇒
-                div(
-                  `class` := "list-group",
-                  div(
-                    refs.collect {
-                      case dir: DirRef ⇒
-                        button(dir.name,
-                               `type` := "button",
-                               `class` := "list-group-item",
-                               onclick := fetchPathsUnder(dir))
-                    },
-                    refs.collect {
-                      case file: FileRef ⇒
-                        span(
-                          `class` := "list-group-item",
-                          span(`class` := "glyphicon glyphicon-file"),
-                          file.name
-                        )
-                    }
+            div(
+              `class` := "list-group",
+              div(
+                refs.collect {
+                  case dir: DirRef ⇒
+                    button(dir.name,
+                      `type` := "button",
+                      `class` := "list-group-item",
+                      onclick := {() => fetchPathsUnder(dir)}
                   )
-                )
-
-              case Success(Left(LookupAccessDenied)) ⇒
-                renderAlert(AlertMode.warning, fetchPathsUnder(path), "Access denied")
-
-              case Success(Left(LookupNotFound)) ⇒
-                renderAlert(AlertMode.warning, fetchPathsUnder(path), s"Path $name not found")
-
-              case Failure(throwable) ⇒
-                renderAlert(AlertMode.danger,
-                            fetchPathsUnder(path),
-                            "Unexpected error: ",
-                            throwable.getMessage)
-            }
+                },
+                refs.collect {
+                  case file: FileRef ⇒
+                    span(
+                      `class` := "list-group-item",
+                      span(`class` := "glyphicon glyphicon-file"),
+                      file.name
+                    )
+                }
+              )
+            )
           )
         )
       case None ⇒
         h2("Loading")
     }
 
-  def renderAlert(mode: AlertMode, retry: () ⇒ Unit, xs: Modifier*): TypedTag[dom.html.Div] =
-    div(`class` := s"alert $mode", renderButton("Retry", retry), xs)
+    rootDom.innerHTML = ""
+    rootDom.appendChild(content.render)
+  }
 
-  def renderButton(title: String, onClick: () ⇒ Unit): TypedTag[dom.html.Button] =
+  def renderButton(title: String, onClick: () ⇒ Unit): Tag =
     button(title, `type` := "button", `class` := "btn, btn-group", onclick := onClick)
 }
 
