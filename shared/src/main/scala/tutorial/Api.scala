@@ -4,7 +4,7 @@ package tutorial
   * The shared API for the application
   */
 trait Api {
-  def fetchPathsUnder(dir: PathRef): Seq[PathRef]
+  def fetchPathsUnder(dir: PathRef): Either[LookupError, Seq[PathRef]]
 }
 
 sealed trait PathRef {
@@ -19,6 +19,13 @@ sealed trait PathRef {
 
     go(this).reverse.mkString("/", "/", "")
   }
+
+  def parentOpt: Option[PathRef] =
+    this match {
+      case DirRef(parent, _) => Some(parent)
+      case FileRef(parent, _) => Some(parent)
+      case RootRef => None
+    }
 }
 
 final case class DirRef(parent:  PathRef, name: String) extends PathRef
@@ -28,5 +35,5 @@ case object RootRef extends PathRef {
 }
 
 sealed trait LookupError
-final case class LookupNotFound(name:  String) extends LookupError
+case object LookupNotFound extends LookupError
 case object LookupAccessDenied extends LookupError

@@ -11,10 +11,6 @@ trait ScalatagsHandler {
 
   private val scalatagsMarshaller = Marshaller.stringMarshaller(`text/html`)
 
-
-  implicit def scalatagsToEntityMarshaller[F <: Frag]: ToEntityMarshaller[F] = {
+  implicit def scalatagsToEntityMarshaller[F <: Frag]: ToEntityMarshaller[F] =
     scalatagsMarshaller.compose((f: F) => f.render)
-  }
-
-
 }
