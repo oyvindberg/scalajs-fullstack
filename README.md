@@ -1,4 +1,4 @@
-# Scala.js workshop at flatMap(Oslo) 2016
+# Scala.js workshop at flatMap(Oslo) 2017
 
 [![Join the chat at https://gitter.im/oyvindberg/scalajs-workshop](https://badges.gitter.im/oyvindberg/scalajs-workshop.svg)](https://gitter.im/oyvindberg/scalajs-workshop?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -120,6 +120,15 @@ sbt> dev
 Note that there is no synchronization between the two restarts, so
  it's possible that the client will reload just as the server is restarting.
 In that case, simply reload the browser.
+
+
+## Testing
+Test code is transpiled and then executed on Node.js, which you need to install 
+on your system if you want to run tests.
+ 
+Additionally, it is recommended to install `jsdom` and `source-map-support` for a fake DOM and source map-support.
+
+Just run `yarn install` / `npm install` in this folder.
 
 ## Suggestions
 
