@@ -8,7 +8,7 @@ import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{RequestContext, Route, RouteResult}
 import akka.stream.ActorMaterializer
 import ScalatagsHandler._
 
@@ -36,10 +36,21 @@ object AkkaHttpServer extends App {
       `Access-Control-Max-Age`(1728000)
     )
 
+  def devBundle: Option[File] = {
+    val targetFolder = new File("../js/target/scala-2.12/")
+    if (targetFolder.exists()) {
+      Option(targetFolder.listFiles()).toSeq.flatten
+        .filter(_.getName.endsWith("js"))
+        .sortBy(-_.lastModified())
+        .headOption
+    } else None
+  }
+
   /* serve index template and static resources */
   val indexRoute: Route =
     pathPrefix("js") {
-      getFromResourceDirectory("public")
+      path("scala-js-workshop-opt.js") {
+        devBundle.fold[Route](reject())(getFromFile) } ~ getFromResourceDirectory("public")
     } ~
       pathPrefix("img") {
         getFromResourceDirectory("public/img")
