@@ -20,7 +20,7 @@ case class ApiImpl(sandbox: File) extends Api {
           filesUnder
             .map {
               case f if f.isDirectory ⇒ DirRef(path, f.getName)
-              case f if f.isFile      ⇒ FileRef(path, f.getName)
+              case f if f.isFile      ⇒ FileRef(path, f.getName, f.length, lastModified(f))
             }
             .sortBy(_.name))
 
@@ -38,7 +38,7 @@ case class ApiImpl(sandbox: File) extends Api {
     loc match {
       case RootRef ⇒
         Right(sandbox)
-      case FileRef(parent, name) ⇒
+      case FileRef(parent, name, _, _) ⇒
         existingFile(parent, name)
       case DirRef(parent, name) ⇒
         existingFile(parent, name)
@@ -52,5 +52,11 @@ case class ApiImpl(sandbox: File) extends Api {
         case _ ⇒
           Left(LookupNotFound)
       }
+    }
+
+  override def fetchFile(file: FileRef): Either[LookupError, String] =
+    parsePathToFile(file) map readFile flatMap {
+      case file if file.length > 10000 => Left(LookupTooBig)
+      case file => Right(file)
     }
 }

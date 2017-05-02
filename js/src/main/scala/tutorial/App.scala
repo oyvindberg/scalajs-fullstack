@@ -4,6 +4,7 @@ import autowire._
 import org.scalajs.dom
 import org.scalajs.dom.raw.{HTMLElement, HTMLScriptElement, HTMLStyleElement}
 import tutorial.CssSettings._
+import InstantCodec._
 
 import scala.scalajs.{js, LinkingInfo}
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
@@ -40,6 +41,7 @@ object App extends js.JSApp {
 
     new FileBrowser(
       remoteFetchPaths = path ⇒ AutowireClient[Api].fetchPathsUnder(path).call(),
+      remoteFetchFile = file => AutowireClient[Api].fetchFile(file).call(),
       updateDom
     )
   }

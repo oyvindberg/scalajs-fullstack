@@ -11,7 +11,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{RequestContext, Route, RouteResult}
 import akka.stream.ActorMaterializer
 import ScalatagsHandler._
-
+import InstantCodec._
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
 object AkkaHttpServer extends App {

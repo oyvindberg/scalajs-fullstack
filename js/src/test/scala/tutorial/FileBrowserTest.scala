@@ -17,7 +17,7 @@ object FileBrowserTest extends TestSuite {
   def tests: Tree[Test] =
     TestSuite {
       'RenderLoadingScreen {
-        assert(FileBrowser.render(FileBrowser.Loading, IgnoreLookups) == h2("Loading"))
+        assert(FileBrowser.render(FileBrowser.Loading, IgnoreLookups, IgnoreLookups) == h2("Loading"))
       }
 
       'CanNavigateAndRenderCorrectly {
@@ -39,6 +39,7 @@ object FileBrowserTest extends TestSuite {
         val browser: FileBrowser =
           new FileBrowser(
             remoteFetchPaths = mockServer andThen Future.successful,
+            remoteFetchFile = file => Future.successful(Left(LookupNotFound)),
             updateDom = (elem: TypedTag[HTMLElement]) ⇒ rendered = elem :: rendered
           )
         browser.fetchPathsUnder(SubDir).foreach {

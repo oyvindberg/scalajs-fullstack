@@ -1,12 +1,14 @@
 package tutorial
 
+import java.time.Instant
+
 /**
   * The shared API for the application
   */
 trait Api {
   def fetchPathsUnder(dir: DirPathRef): Either[LookupError, Seq[PathRef]]
 
-  //  def fetchFile(file: FileRef): Either[LookupError, String]
+  def fetchFile(file: FileRef): Either[LookupError, String]
 }
 
 sealed trait PathRef {
@@ -33,7 +35,8 @@ sealed trait PathRef {
 sealed trait DirPathRef extends PathRef
 
 final case class DirRef(parent:  DirPathRef, name: String) extends DirPathRef
-final case class FileRef(parent: DirPathRef, name: String) extends PathRef
+final case class FileRef(parent: DirPathRef, name: String, size: Long, lastModified: Instant) extends PathRef
+
 
 case object RootRef extends DirPathRef {
   val name = "/"
@@ -41,4 +44,5 @@ case object RootRef extends DirPathRef {
 
 sealed trait LookupError
 case object LookupNotFound     extends LookupError
+case object LookupTooBig     extends LookupError
 case object LookupAccessDenied extends LookupError

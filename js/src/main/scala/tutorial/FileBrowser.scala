@@ -10,27 +10,47 @@ import scalatags.JsDom.all._
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
 final class FileBrowser(remoteFetchPaths: DirPathRef ⇒ Future[Either[LookupError, Seq[PathRef]]],
+                        remoteFetchFile:  FileRef ⇒ Future[Either[LookupError, String]],
                         updateDom:        TypedTag[HTMLElement] => Unit) {
 
   def setState(state: FileBrowser.State): Unit =
-    updateDom(FileBrowser.render(state, path => () => fetchPathsUnder(path)))
+    updateDom(
+      FileBrowser.render(
+        state,
+        path => () => fetchPathsUnder(path),
+        file => () => fetchFile(file)
+      ))
 
   def fetchPathsUnder(wantedPath: DirPathRef): Future[Unit] = {
     setState(FileBrowser.Loading)
 
     remoteFetchPaths(wantedPath).transform { (result: Try[Either[LookupError, Seq[PathRef]]]) =>
       val state: FileBrowser.State =
-        newState(wantedPath, result)(dirContents => FileBrowser.AtDir(wantedPath, dirContents))
+        newState(wantedPath, result, () => fetchPathsUnder(wantedPath))(dirContents =>
+          FileBrowser.AtDir(wantedPath, dirContents))
 
       Success(setState(state))
     }
   }
 
-  def newState[T](wantedPath: DirPathRef, result: Try[Either[LookupError, T]])(
-      success:                T => FileBrowser.State): FileBrowser.State = {
+  def fetchFile(wantedFile: FileRef): Future[Unit] = {
+    setState(FileBrowser.Loading)
+
+    remoteFetchFile(wantedFile).transform { (result: Try[Either[LookupError, String]]) =>
+      val state: FileBrowser.State =
+        newState(wantedFile, result, () => remoteFetchFile(wantedFile))(dirContents =>
+          FileBrowser.AtFile(wantedFile, dirContents))
+
+      Success(setState(state))
+    }
+  }
+
+  def newState[T](wantedPath:  PathRef,
+                  result:      Try[Either[LookupError, T]],
+                  retryAction: () => Unit)(success: T => FileBrowser.State): FileBrowser.State = {
 
     def error(msg: String): FileBrowser.State =
-      FileBrowser.Error(msg, () => fetchPathsUnder(wantedPath))
+      FileBrowser.Error(msg, retryAction)
 
     result match {
       case Success(Right(t)) ⇒
@@ -41,6 +61,9 @@ final class FileBrowser(remoteFetchPaths: DirPathRef ⇒ Future[Either[LookupErr
 
       case Success(Left(LookupAccessDenied)) =>
         error(s"Access denied to $wantedPath")
+
+      case Success(Left(LookupTooBig)) =>
+        error(s"$wantedPath was too big")
 
       case Failure(throwable) ⇒
         error(s"Unexpected error: ${throwable.getMessage}")
@@ -55,17 +78,21 @@ object FileBrowser {
   sealed trait State {
     def pathOpt: Option[PathRef] =
       this match {
-        case AtDir(path, _) => Some(path)
-        case Error(_, _)    => None
-        case Loading        => None
+        case AtDir(path, _)  => Some(path)
+        case AtFile(file, _) => Some(file)
+        case Error(_, _)     => None
+        case Loading         => None
       }
   }
 
   case object Loading extends State
-  case class AtDir(path: DirPathRef, dirContents: Seq[PathRef]) extends State
-  case class Error(msg:  String, retry:        () => Unit)   extends State
+  case class AtDir(path:  DirPathRef, dirContents: Seq[PathRef]) extends State
+  case class AtFile(file: FileRef, contents:       String)       extends State
+  case class Error(msg:   String, retry:           () => Unit)   extends State
 
-  def render(state: FileBrowser.State, fetchDir: DirPathRef => () => Unit): TypedTag[HTMLElement] =
+  def render(state:     FileBrowser.State,
+             fetchDir:  DirPathRef => () => Unit,
+             fetchFile: FileRef => () => Unit): TypedTag[HTMLElement] =
     state match {
       case FileBrowser.AtDir(path, refs) ⇒
         div(
@@ -76,9 +103,7 @@ object FileBrowser {
             h1("Currently browsing", path.toString),
             div(
               `class` := "btn-toolbar",
-              state.pathOpt
-                .flatMap(_.parentOpt)
-                .map(parent => Bootstrap.btn("Back", fetchDir(parent))),
+              state.pathOpt.flatMap(_.parentOpt).map(parent => Bootstrap.btn("Back", fetchDir(parent))),
               Bootstrap.btn("Refresh", fetchDir(path))
             )
           ),
@@ -95,17 +120,35 @@ object FileBrowser {
                            onclick := fetchDir(dir))
                 },
                 refs.collect {
-                  case file @ FileRef(parent, fileName) ⇒
+                  case file @ FileRef(parent, fileName, size, lastModified) ⇒
                     a(
                       `class` := "list-group-item",
                       span(`class` := "glyphicon glyphicon-file"),
                       fileName,
-                      cursor := "pointer"
+                      cursor := "pointer",
+                      span(`class` := "badge", s"${size / 1024} kb, last modified: $lastModified"),
+                      onclick := fetchFile(file)
                     )
                 }
               )
             )
           )
+        )
+
+      case FileBrowser.AtFile(file, contents) ⇒
+        div(
+          /* reference a scalacss style */
+          Styles.myStyle,
+          div(
+            `class` := "panel-heading",
+            h1("Currently browsing", file.toString),
+            div(
+              `class` := "btn-toolbar",
+              state.pathOpt.flatMap(_.parentOpt).map(parent => Bootstrap.btn("Back", fetchDir(parent))),
+              Bootstrap.btn("Refresh", fetchFile(file))
+            )
+          ),
+          code(pre(contents))
         )
 
       case FileBrowser.Loading ⇒
