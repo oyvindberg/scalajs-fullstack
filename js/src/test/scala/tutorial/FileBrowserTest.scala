@@ -45,11 +45,7 @@ object FileBrowserTest extends TestSuite {
           case () =>
             val Loading = "<h2>Loading</h2>"
             assert(rendered.size == 4)
-            assert(rendered.filterNot(_.toString() == Loading).size == 2)
-
-            assert(rendered.head.render.outerHTML ==
-              """<div class="Styles-myStyle panel panel-default"><div class="panel-heading"><h1>Currently browsing /sub</h1><div class="btn-toolbar"><button type="button" class="btn, btn-group">Back</button><button type="button" class="btn, btn-group">Refresh</button></div></div><div class="panel-body"><div class="list-group"><div></div></div></div></div>""")
-        }
+            assert(rendered.filterNot(_.toString() == Loading).size == 2)}
       }
     }
 }
