@@ -19,11 +19,7 @@ object Styles extends StyleSheet.Inline {
     /* Applying our mixin */
     common,
     /* add some more properties */
-    margin(20.px),
-    cursor.allScroll,
-    &.hover(
-      cursor.move
-    )
+    margin(20.px)
   )
 
   /** Style requiring an Int when applied. */

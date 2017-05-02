@@ -47,7 +47,8 @@ lazy val tutorial: CrossProject =
     .jsSettings(
       /* scala.js dependencies */
       libraryDependencies ++= Seq(
-        "org.scala-js" %%% "scalajs-dom" % "0.9.1"
+        "org.scala-js" %%% "scalajs-dom" % "0.9.1",
+        "org.scala-js" %%% "scalajs-java-time" % "0.2.1"
       ),
       /* javascript dependencies */
       skip in packageJSDependencies := false,

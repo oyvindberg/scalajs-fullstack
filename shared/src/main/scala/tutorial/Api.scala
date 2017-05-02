@@ -4,7 +4,9 @@ package tutorial
   * The shared API for the application
   */
 trait Api {
-  def fetchPathsUnder(dir: PathRef): Either[LookupError, Seq[PathRef]]
+  def fetchPathsUnder(dir: DirPathRef): Either[LookupError, Seq[PathRef]]
+
+  //  def fetchFile(file: FileRef): Either[LookupError, String]
 }
 
 sealed trait PathRef {
@@ -12,28 +14,31 @@ sealed trait PathRef {
   override final def toString: String = {
     def go(loc: PathRef): List[String] =
       loc match {
-        case DirRef(parent, name)  ⇒ name :: go(parent)
-        case FileRef(parent, name) ⇒ name :: go(parent)
-        case RootRef               ⇒ Nil
+        case d: DirRef  ⇒ name :: go(d.parent)
+        case f: FileRef ⇒ name :: go(f.parent)
+        case RootRef ⇒ Nil
       }
 
     go(this).reverse.mkString("/", "/", "")
   }
 
-  def parentOpt: Option[PathRef] =
+  def parentOpt: Option[DirPathRef] =
     this match {
-      case DirRef(parent, _) => Some(parent)
-      case FileRef(parent, _) => Some(parent)
+      case d: DirRef  => Some(d.parent)
+      case f: FileRef => Some(f.parent)
       case RootRef => None
     }
 }
 
-final case class DirRef(parent:  PathRef, name: String) extends PathRef
-final case class FileRef(parent: PathRef, name: String) extends PathRef
-case object RootRef extends PathRef {
+sealed trait DirPathRef extends PathRef
+
+final case class DirRef(parent:  DirPathRef, name: String) extends DirPathRef
+final case class FileRef(parent: DirPathRef, name: String) extends PathRef
+
+case object RootRef extends DirPathRef {
   val name = "/"
 }
 
 sealed trait LookupError
-case object LookupNotFound extends LookupError
+case object LookupNotFound     extends LookupError
 case object LookupAccessDenied extends LookupError
