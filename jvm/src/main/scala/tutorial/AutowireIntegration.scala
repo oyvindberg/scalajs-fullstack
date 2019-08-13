@@ -1,8 +1,6 @@
 package tutorial
 
-import upickle.Js
-import upickle.Js.Value
-import upickle.default.{Reader, Writer}
+import upickle.default.{Reader, Writer, write => writeJson, read => readJson}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -15,13 +13,14 @@ import scala.concurrent.{ExecutionContext, Future}
   *
   * You're in luck, though, because here it is provided for you
   */
-/* integration between Autowire and uPickle */
-object AutowireUpickleServer extends autowire.Server[Js.Value, Reader, Writer] {
-  def read[Result: Reader](p: Js.Value): Result =
-    upickle.default.readJs[Result](p)
 
-  def write[Result: Writer](r: Result): Value =
-    upickle.default.writeJs(r)
+/* integration between Autowire and uPickle */
+object AutowireUpickleServer extends autowire.Server[String, Reader, Writer] {
+  def read[Result: Reader](p: String): Result =
+    readJson[Result](p)
+
+  def write[Result: Writer](r: Result): String =
+    writeJson(r)
 }
 
 /* integration between Autowire/uPickle and Akka Http */
@@ -39,19 +38,16 @@ object AutowireAkkaHttpRoute {
       path(uri / Segments) { (path: List[String]) =>
         entity(as[String]) { (argsString: String) ⇒
           complete {
-            val decodedArgs: Map[String, Js.Value] =
-              upickle.json.read(argsString).asInstanceOf[Js.Obj].value.toMap
+            val decodedArgs: Map[String, String] =
+              readJson[List[(String, String)]](argsString).toMap
 
             val router: AutowireUpickleServer.Router =
               f(AutowireUpickleServer)
 
-            val result: Future[Js.Value] =
+            val result: Future[String] =
               router(autowire.Core.Request(path, decodedArgs))
 
-            val serializedResult: Future[String] =
-              result.map(upickle.json.write(_))
-
-            serializedResult
+            result
           }
         }
       }

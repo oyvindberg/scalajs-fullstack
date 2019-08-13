@@ -5,14 +5,12 @@ import java.io.File
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers._
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.{RequestContext, Route, RouteResult}
+import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
-import ScalatagsHandler._
 
-import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.ExecutionContextExecutor
 
 object AkkaHttpServer extends App {
 
@@ -27,56 +25,23 @@ object AkkaHttpServer extends App {
   implicit val executionContext: ExecutionContextExecutor =
     system.dispatcher
 
-  val corsHeaders: List[ModeledHeader] =
-    List(
-      `Access-Control-Allow-Methods`(HttpMethods.OPTIONS, HttpMethods.GET, HttpMethods.POST),
-      `Access-Control-Allow-Origin`(HttpOriginRange.*),
-      `Access-Control-Allow-Headers`(
-        "Origin, X-Requested-With, Content-Type, Accept, Accept-Encoding, Accept-Language, Host, Referer, User-Agent"),
-      `Access-Control-Max-Age`(1728000)
-    )
-
-  def devBundle: Option[File] = {
-    val targetFolder = new File("../js/target/scala-2.12/")
-    if (targetFolder.exists()) {
-      Option(targetFolder.listFiles()).toSeq.flatten
-        .filter(_.getName.endsWith("js"))
-        .sortBy(-_.lastModified())
-        .headOption
-    } else None
-  }
+  val apiImpl: ApiImpl =
+    ApiImpl(new File(".."))
 
   /* serve index template and static resources */
   val indexRoute: Route =
-    pathPrefix("js") {
-      path("scala-js-workshop-opt.js") {
-        devBundle.fold[Route](reject())(getFromFile) } ~ getFromResourceDirectory("public")
-    } ~
-      pathPrefix("img") {
-        getFromResourceDirectory("public/img")
-      } ~
-      get {
-        pathSingleSlash {
-          complete {
-
-            Template.asScalaTags
-          }
-        }
-      } ~
-      getFromResourceDirectory("") ~
-      options {
-        complete(HttpResponse(headers = corsHeaders))
+    get {
+      pathSingleSlash {
+        redirect("index.html", StatusCodes.MovedPermanently)
       }
+    } ~
+      /* when packaged (`tutorialJVM/assembly`) we find assets in the fatjar */
+      getFromResourceDirectory("META-INF/resources/webjars/tutorial/0.1.0-SNAPSHOT/") ~
+      /* when run from sbt (`tutorialJVM/run`) we find assets through file system */
+      getFromDirectory("jvm/target/web/classes/main/META-INF/resources/webjars/tutorial/0.1.0-SNAPSHOT") ~
+      AutowireAkkaHttpRoute("api", _.route[Api](apiImpl))
 
-  val impl: ApiImpl =
-    ApiImpl(new File(".."))
-
-  val bindingFuture: Future[ServerBinding] =
-    Http().bindAndHandle(indexRoute ~ AutowireAkkaHttpRoute("api", _.route[Api](impl)),
-                         "0.0.0.0",
-                         8080)
-
-  bindingFuture.foreach { (sb: ServerBinding) ⇒
+  Http().bindAndHandle(indexRoute, "0.0.0.0", 8080).foreach { (sb: ServerBinding) ⇒
     println(s"Server online at ${sb.localAddress}")
 
     Option(System.console).foreach { console ⇒

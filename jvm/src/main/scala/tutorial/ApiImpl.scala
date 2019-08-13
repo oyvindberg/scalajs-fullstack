@@ -9,7 +9,7 @@ case class ApiImpl(sandbox: File) extends Api {
   override def fetchPathsUnder(path: DirPathRef): Either[LookupError, Seq[PathRef]] =
     parsePathToFile(path) match {
       case Left(notFound) ⇒
-        Left(notFound)  
+        Left(notFound)
 
       //lets pretend this is good enough
       case Right(file) if file.getAbsolutePath.startsWith(sandbox.getAbsolutePath) ⇒
@@ -18,9 +18,9 @@ case class ApiImpl(sandbox: File) extends Api {
 
         Right(
           filesUnder
-            .map {
-              case f if f.isDirectory ⇒ DirRef(path, f.getName)
-              case f if f.isFile      ⇒ FileRef(path, f.getName)
+            .collect {
+              case f if f.isDirectory => DirRef(path, f.getName)
+              case f if f.isFile      => FileRef(path, f.getName)
             }
             .sortBy(_.name))
 

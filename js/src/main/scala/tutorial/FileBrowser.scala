@@ -73,7 +73,7 @@ object FileBrowser {
           Styles.myStyle,
           div(
             `class` := "panel-heading",
-            h1("Currently browsing", path.toString),
+            h1("Currently browsing ", path.toString),
             div(
               `class` := "btn-toolbar",
               state.pathOpt

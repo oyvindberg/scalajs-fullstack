@@ -1,6 +1,9 @@
-# Scala.js workshop at flatMap(Oslo) 2017
+# Scala.js example fullstack program
 
 [![Join the chat at https://gitter.im/oyvindberg/scalajs-workshop](https://badges.gitter.im/oyvindberg/scalajs-workshop.svg)](https://gitter.im/oyvindberg/scalajs-workshop?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+### :collision: warning
+Tests and source maps not working perfectly for now
 
 ## TLDR
 ```
@@ -10,12 +13,14 @@ cd scalajs-workshop
 dev
 ```
 
-Application served at [http://localhost:8080](http://localhost:8080)
+Application served via `webpack-dev-server` at [http://localhost:8081](http://localhost:8081).
+The server will be running at [http://localhost:8080](http://localhost:8080).
+
 Look at **Suggestions** at the bottom
 
 ## About
 This project consists of a simple file browser that uses
- [Akka Http](http://doc.akka.io/docs/akka/2.4.4/scala/http/)
+ [Akka Http](https://doc.akka.io/docs/akka-http/current/)
  on the backend, and
  [Scala.js](https://www.scala-js.org/)
  with [Bootstrap](https://getbootstrap.com) for the frontend code.
@@ -23,14 +28,13 @@ This project consists of a simple file browser that uses
 Furthermore, we use the [«Li Haoyi stack»](https://github.com/lihaoyi) for
  type-safe Ajax calls ([Autowire](https://github.com/lihaoyi/autowire)),
  html templating ([ScalaTags](https://github.com/lihaoyi/scalatags)),
- json serialization ([uPickle](https://github.com/lihaoyi/upickle-pprint))
+ json serialization ([uPickle](https://github.com/lihaoyi/upickle))
  and testing ([uTest](https://github.com/lihaoyi/utest)).
 
  These are all examples of good micro-libraries that are cross-compiled for Scala.js
 
 We also use typed wrappers for javascript APIs, notably
 [Scala.js DOM](http://scala-js.github.io/scala-js-dom/)
-
 
 ## Development
 
@@ -61,49 +65,45 @@ sbt> fullOptJS
 
 #### Resulting files
 ```
-bash> ls js/target/scala-2.11/
-1.3M scala-js-workshop-fastopt.js     <-- Result of fastOptJS
-436K scala-js-workshop-fastopt.js.map <-- Source map for fastOptJS
-309K scala-js-workshop-jsdeps.js      <-- Javascript dependencies concatenated by sbt
-278K scala-js-workshop-jsdeps.min.js  <-- Minified Javascript dependencies concatenated bt
-126B scala-js-workshop-launcher.js    <-- Generated script that runs main()
-277K scala-js-workshop-opt.js         <-- Result of fullOptJS
-920K scala-js-workshop-opt.js.map     <-- Source map for fullOptJS
+bash> ls js/target/scala-2.12/scalajs-bundler/main
+2,3M tutorial-fastopt-bundle.js       <-- Result of bundling fastOptJS build with dependencies
+2,7M tutorial-fastopt-bundle.js.map   <-- Source map of bundle above 
+2,1M tutorial-fastopt.js              <-- Result of fastOptJS
+668K tutorial-opt-bundle.js           <-- Result of bundling fullOptJS build with dependencies  
+876K tutorial-opt-bundle.js.map       <-- Source map of bundle above
+450K tutorial-opt.js                  <-- Result of fullOptJS
 ```
 
 ### Rapid development
-Since the project both has client and server code, we use two sbt plugins to
-automatically reload browser and restart server when necessary.
+Since the project both has client and server code, we can reload one or both
+on code changes.
 
 For the backend we use [sbt-revolver](https://github.com/spray/sbt-revolver).
-Usage is very simple:
+Usage is like this:
 ```
 # start server
-sbt> tutorialJVM/re-start
+sbt> tutorialJVM/reStart
 
 # restart server
-sbt> tutorialJVM/re-start
+sbt> tutorialJVM/reStart
 
 # stop server
-sbt> tutorialJVM/re-stop
+sbt> tutorialJVM/reStop
 
 # status
-sbt> re-status
+sbt> reStatus
 
 # continuously restart server on changed code
-sbt> ~tutorialJVM/restart
+sbt> ~tutorialJVM/reStart
 
 # alias
 sbt> devBack
 ```
 
-For the frontend we use [workbench](https://github.com/lihaoyi/workbench).
-This works by redirecting messages from sbt to the browser so you can see the project
-(not) compile, and automatically have the browser window reloaded on successful compilation.
-
-Usage is again very simple:
+Frontend: 
 ```
-sbt> ~;tutorialJS/fastOptJS;tutorialJS/refreshBrowsers
+# continuously compile and bundle code 
+sbt> ~tutorialJS/fastOptJS::webpack
 
 # alias
 sbt> devFront
@@ -111,15 +111,13 @@ sbt> devFront
 
 If you make changes both on client and server side, this snippet should do it:
 ```
-sbt> ~;tutorialJVM/re-start;tutorialJS/fastOptJS;tutorialJS/refreshBrowsers
-
 # alias
 sbt> dev
 
 ```
 Note that there is no synchronization between the two restarts, so
  it's possible that the client will reload just as the server is restarting.
-In that case, simply reload the browser.
+In that case, simply reload the browser, or use `devFront` or `devBack`
 
 
 ## Testing
@@ -130,10 +128,19 @@ Additionally, it is recommended to install `jsdom` and `source-map-support` for 
 
 Just run `yarn install` / `npm install` in this folder.
 
-## Suggestions
+## Production
+You can build a fatjar which is executable and will serve frontend contents as well:
+```
+sbt>tutorialJVM/assembly
+# [info] Packaging .../jvm/target/scala-2.12/tutorial-assembly-0.1.0-SNAPSHOT.jar ...
 
-The workshop is very much open ended,
-these are some suggestions for things that could be fun to play with:
+shell> java -jar .../jvm/target/scala-2.12/tutorial-assembly-0.1.0-SNAPSHOT.jar 
+```
+
+## Ideas
+
+This repo was originally created for a workshop, and the idea was that people can play around.
+These are some suggestions for things that could be fun to play with:
 
 - Try to break it!
  The compiler generally has your back, and a *lot*

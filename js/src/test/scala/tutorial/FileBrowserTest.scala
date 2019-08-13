@@ -2,7 +2,6 @@ package tutorial
 
 import org.scalajs.dom.raw.HTMLElement
 import utest._
-import utest.framework.{Test, Tree}
 
 import scala.concurrent.Future
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
@@ -14,8 +13,8 @@ object FileBrowserTest extends TestSuite {
   val IgnoreLookups: PathRef ⇒ () => Unit =
     path ⇒ () => ()
 
-  def tests: Tree[Test] =
-    TestSuite {
+  def tests =
+    Tests {
       'RenderLoadingScreen {
         assert(FileBrowser.render(FileBrowser.Loading, IgnoreLookups) == h2("Loading"))
       }

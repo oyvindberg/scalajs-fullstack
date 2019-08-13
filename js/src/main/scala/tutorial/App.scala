@@ -2,31 +2,40 @@ package tutorial
 
 import autowire._
 import org.scalajs.dom
-import org.scalajs.dom.raw.{HTMLElement, HTMLScriptElement, HTMLStyleElement}
-import tutorial.CssSettings._
-
-import scala.scalajs.{js, LinkingInfo}
-import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
+import org.scalajs.dom.raw.{HTMLElement, HTMLStyleElement}
 import scalacss.ScalatagsCss._
 import scalatags.JsDom.TypedTag
 import scalatags.JsDom.all._
+import tutorial.CssSettings._
 
-object App extends js.JSApp {
+import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
+import scala.scalajs.js
+import scala.scalajs.js.annotation.JSImport
 
-  /* Entry point */
-  override def main(): Unit = {
+object App {
+  @JSImport("bootstrap/dist/css/bootstrap.css", JSImport.Namespace)
+  @js.native
+  object BootstrapCss extends js.Object
 
-    if (LinkingInfo.developmentMode) {
-      val script = dom.document.createElement("script").asInstanceOf[HTMLScriptElement]
-      script.`type` = "text/javascript"
-      script.src = "//localhost:12345/workbench.js"
-      dom.document.head.appendChild(script)
-    }
+  @JSImport("assets/img/logo.svg", JSImport.Namespace)
+  @js.native
+  object Logo extends js.Object
+
+  val Header = header(
+    img(src := Logo.asInstanceOf[String]),
+    width := 300.px,
+    padding := 25.px
+  )
+
+  def main(args: Array[String]): Unit = {
+    /* touch to include in build */
+    BootstrapCss
 
     /* outputs all the styles */
-    dom.document.head.appendChild(
-      Styles.render[TypedTag[HTMLStyleElement]].render
-    )
+    dom.document.head.appendChild(Styles.render[TypedTag[HTMLStyleElement]].render)
+
+    /* render logo */
+    dom.document.body.appendChild(Header.render)
 
     /* connect FileBrowser to where we want to render it in the DOM */
     val domTarget = div().render

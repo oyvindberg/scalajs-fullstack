@@ -2,18 +2,15 @@ package tutorial
 
 import java.time.Instant
 
-import upickle.Js.Str
-import upickle.default
+import upickle.default.{Reader, Writer}
 
 /**
   * These needs to be in scope to use `Instant` with upickle (json) and autowire
   */
 object InstantCodec {
-  implicit val InstantReader: default.Reader[Instant] =
-    upickle.default.makeReader{
-      case Str(str) => Instant.ofEpochMilli(str.toLong)
-    }
+  implicit val InstantReader: Reader[Instant] =
+    implicitly[Reader[Long]].map(Instant.ofEpochMilli)
 
-  implicit val InstantWriter: default.Writer[Instant] =
-    upickle.default.makeWriter((i: Instant) => Str(i.toEpochMilli.toString))
+  implicit val InstantWriter: Writer[Instant] =
+    implicitly[Writer[Long]].comap[Instant](_.toEpochMilli)
 }
