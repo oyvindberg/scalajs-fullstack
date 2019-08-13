@@ -48,7 +48,7 @@ object App {
     }
 
     new FileBrowser(
-      remoteFetchPaths = path ⇒ AutowireClient[Api].fetchPathsUnder(path).call(),
+      remoteFetchPaths = path => AutowireClient[Api].fetchPathsUnder(path).call(),
       updateDom
     )
   }

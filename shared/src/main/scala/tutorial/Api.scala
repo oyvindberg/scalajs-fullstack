@@ -34,10 +34,10 @@ sealed trait PathRef {
 }
 
 object PathRef {
-  implicit val rwFileRef: RW[FileRef] = macroRW
-  implicit val rwDirRef: RW[DirRef] = macroRW
+  implicit val rwFileRef:    RW[FileRef]    = macroRW
+  implicit val rwDirRef:     RW[DirRef]     = macroRW
   implicit val rwDirPathRef: RW[DirPathRef] = macroRW
-  implicit val rwPathRef: RW[PathRef] = macroRW
+  implicit val rwPathRef:    RW[PathRef]    = macroRW
 }
 
 sealed trait DirPathRef extends PathRef
@@ -51,7 +51,7 @@ case object RootRef extends DirPathRef {
 }
 
 sealed trait LookupError
-case object LookupNotFound     extends LookupError
+case object LookupNotFound extends LookupError
 case object LookupAccessDenied extends LookupError
 
 object LookupError {

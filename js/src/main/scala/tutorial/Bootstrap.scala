@@ -8,10 +8,10 @@ import scalatags.JsDom.all._
 
 /* just as much of bootstrap as we needed */
 object Bootstrap {
-  def alert(mode: AlertMode, retry: () ⇒ Unit, xs: Modifier*): TypedTag[Div] =
+  def alert(mode: AlertMode, retry: () => Unit, xs: Modifier*): TypedTag[Div] =
     div(`class` := s"alert $mode", btn("Retry", retry), xs)
 
-  def btn(title: String, onClick: () ⇒ Unit): TypedTag[Button] =
+  def btn(title: String, onClick: () => Unit): TypedTag[Button] =
     button(title, `type` := "button", `class` := "btn, btn-group", onclick := onClick)
 }
 

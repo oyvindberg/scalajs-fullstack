@@ -41,14 +41,14 @@ object AkkaHttpServer extends App {
       getFromDirectory("jvm/target/web/classes/main/META-INF/resources/webjars/tutorial/0.1.0-SNAPSHOT") ~
       AutowireAkkaHttpRoute("api", _.route[Api](apiImpl))
 
-  Http().bindAndHandle(indexRoute, "0.0.0.0", 8080).foreach { (sb: ServerBinding) ⇒
+  Http().bindAndHandle(indexRoute, "0.0.0.0", 8080).foreach { (sb: ServerBinding) =>
     println(s"Server online at ${sb.localAddress}")
 
-    Option(System.console).foreach { console ⇒
+    Option(System.console).foreach { console =>
       console.readLine("Press ENTER to stop server")
 
       sb.unbind() // trigger unbinding from the port
-        .onComplete(_ ⇒ system.terminate()) // and shutdown when done
+        .onComplete(_ => system.terminate()) // and shutdown when done
     }
   }
 }

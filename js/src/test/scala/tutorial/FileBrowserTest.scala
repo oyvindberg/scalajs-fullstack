@@ -10,8 +10,8 @@ import scalatags.JsDom.all._
 
 object FileBrowserTest extends TestSuite {
 
-  val IgnoreLookups: PathRef ⇒ () => Unit =
-    path ⇒ () => ()
+  val IgnoreLookups: PathRef => () => Unit =
+    path => () => ()
 
   def tests =
     Tests {
@@ -26,19 +26,19 @@ object FileBrowserTest extends TestSuite {
         val SubDir: DirRef =
           DirRef(RootRef, "sub")
 
-        val mockServer: PathRef ⇒ Either[LookupError, Seq[PathRef]] = {
-          case RootRef ⇒
+        val mockServer: PathRef => Either[LookupError, Seq[PathRef]] = {
+          case RootRef =>
             Right(Seq(SubDir))
-          case SubDir ⇒
+          case SubDir =>
             Right(Seq.empty)
-          case other ⇒
+          case other =>
             Left(LookupAccessDenied)
         }
 
         val browser: FileBrowser =
           new FileBrowser(
             remoteFetchPaths = mockServer andThen Future.successful,
-            updateDom = (elem: TypedTag[HTMLElement]) ⇒ rendered = elem :: rendered
+            updateDom = (elem: TypedTag[HTMLElement]) => rendered = elem :: rendered
           )
         browser.fetchPathsUnder(SubDir).foreach {
           case () =>
