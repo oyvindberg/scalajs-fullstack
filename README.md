@@ -2,9 +2,6 @@
 
 [![Join the chat at https://gitter.im/oyvindberg/scalajs-workshop](https://badges.gitter.im/oyvindberg/scalajs-workshop.svg)](https://gitter.im/oyvindberg/scalajs-workshop?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-### :collision: warning
-Tests and source maps not working perfectly for now
-
 ## TLDR
 ```
 git clone https://github.com/oyvindberg/scalajs-workshop.git
@@ -123,10 +120,11 @@ In that case, simply reload the browser, or use `devFront` or `devBack`
 ## Testing
 Test code is transpiled and then executed on Node.js, which you need to install 
 on your system if you want to run tests.
- 
-Additionally, it is recommended to install `jsdom` and `source-map-support` for a fake DOM and source map-support.
 
-Just run `yarn install` / `npm install` in this folder.
+To run the frontend tests do this:
+```
+sbt> tutorialJS/test
+```
 
 ## Production
 You can build a fatjar which is executable and will serve frontend contents as well:

@@ -11,9 +11,9 @@ import scalatags.JsDom.all._
 object FileBrowserTest extends TestSuite {
 
   val IgnoreLookups: PathRef => () => Unit =
-    path => () => ()
+    _ => () =>  ()
 
-  def tests =
+  override def tests =
     Tests {
       'RenderLoadingScreen {
         assert(FileBrowser.render(FileBrowser.Loading, IgnoreLookups) == h2("Loading"))

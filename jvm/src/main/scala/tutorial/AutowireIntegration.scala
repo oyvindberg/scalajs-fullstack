@@ -1,12 +1,10 @@
 package tutorial
 
-import upickle.default.{Reader, Writer, write => writeJson, read => readJson}
-
-import scala.concurrent.{ExecutionContext, Future}
+import upickle.default.{Reader, Writer, read => readJson, write => writeJson}
 
 /**
   * Since we are using micro-libraries, it often falls to the
-  *  user to do the integration between them.
+  * user to do the integration between them.
   *
   * This needs to be done for every combination of
   * autowire + a serialization library + a HTTP library.
@@ -24,6 +22,7 @@ object AutowireUpickleServer extends autowire.Server[String, Reader, Writer] {
 
 /* integration between Autowire/uPickle and Akka Http */
 object AutowireAkkaHttpRoute {
+
   import akka.http.scaladsl.server.Directives._
   import akka.http.scaladsl.server._
 
@@ -31,11 +30,10 @@ object AutowireAkkaHttpRoute {
     * @param f Need to expose this to user in order to not break macro
     * @return Akka Http route
     */
-  def apply(uri: PathMatcher[Unit],
-            f:   AutowireUpickleServer.type => AutowireUpickleServer.Router)(implicit ctx: ExecutionContext): Route =
+  def apply(uri: PathMatcher[Unit], f: AutowireUpickleServer.type => AutowireUpickleServer.Router): Route =
     post {
-      path(uri / Segments) { (path: List[String]) =>
-        entity(as[String]) { (argsString: String) =>
+      path(uri / Segments) { paths: List[String] =>
+        entity(as[String]) { argsString =>
           complete {
             val decodedArgs: Map[String, String] =
               readJson[List[(String, String)]](argsString).toMap
@@ -43,10 +41,7 @@ object AutowireAkkaHttpRoute {
             val router: AutowireUpickleServer.Router =
               f(AutowireUpickleServer)
 
-            val result: Future[String] =
-              router(autowire.Core.Request(path, decodedArgs))
-
-            result
+            router(autowire.Core.Request(paths, decodedArgs))
           }
         }
       }

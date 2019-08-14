@@ -21,24 +21,27 @@ lazy val tutorialJvm: Project =
   tutorial.jvm
     .enablePlugins(WebScalaJSBundlerPlugin)
     .settings(
+      name := "tutorialJVM",
       /* Normal scala dependencies */
       libraryDependencies ++= Seq(
         "com.typesafe.akka" %% "akka-http" % "10.1.9",
         "com.typesafe.akka" %% "akka-stream" % "2.5.23",
       ),
       scalaJSProjects := Seq(tutorialJs),
-      pipelineStages in Assets := Seq(scalaJSPipeline)
+      Assets / pipelineStages := Seq(scalaJSPipeline)
     )
 
 lazy val tutorialJs: Project =
   tutorial.js
     .enablePlugins(ScalaJSBundlerPlugin)
     .settings(
+      name := "tutorialJS",
       webpackDevServerPort := 8081,
       /* discover main and make the bundle run it */
       scalaJSUseMainModuleInitializer := true,
+      useYarn := true,
       /* disabled because it somehow triggers many warnings */
-      emitSourceMaps := false,
+      Compile / emitSourceMaps := false,
       /* in preparation for scala.js 1.0 */
       scalacOptions += "-P:scalajs:sjsDefinedByDefault",
       /* scala.js dependencies */
@@ -51,10 +54,8 @@ lazy val tutorialJs: Project =
         "bootstrap" -> "4.3.1",
         "jquery" -> "3.4.1",
       ),
-      /* uTest settings*/
-      testFrameworks += new TestFramework("utest.runner.Framework"),
       /* custom webpack file */
-      webpackConfigFile := Some((ThisBuild / baseDirectory).value / "custom.webpack.config.js"),
+      Compile / webpackConfigFile := Some((ThisBuild / baseDirectory).value / "custom.webpack.config.js"),
       /* dependencies for custom webpack file */
       Compile / npmDevDependencies ++= Seq(
         "webpack-merge" -> "4.1",
@@ -64,7 +65,13 @@ lazy val tutorialJs: Project =
         "url-loader" -> "1.1.2",
         "html-webpack-plugin" -> "3.2.0",
       ),
-      requireJsDomEnv in Test := true
+      /* don't need to override anything for test. revisit this if you depend on code which imports resources,
+          for instance (you probably shouldn't need to) */
+      Test / webpackConfigFile := None,
+      Test / npmDependencies ++= Seq(
+        "source-map-support" -> "0.5.13"
+      ),
+      Test / requireJsDomEnv := true,
     )
 
 lazy val baseSettings: Project => Project =
@@ -72,6 +79,7 @@ lazy val baseSettings: Project => Project =
     organization := "com.olvind",
     scalaVersion := "2.12.9",
     scalacOptions ++= Seq("-encoding", "UTF-8", "-feature", "-unchecked", "-Xlint", "-Yno-adapted-args", "-Xfuture", "-deprecation"),
+    testFrameworks += new TestFramework("utest.runner.Framework"),
   )
 
 def cmd(name: String, commands: String*) =
