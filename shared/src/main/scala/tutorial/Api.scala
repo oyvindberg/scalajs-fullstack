@@ -2,8 +2,7 @@ package tutorial
 
 import upickle.default.{ReadWriter => RW, macroRW}
 
-/**
-  * The shared API for the application
+/** The shared API for the application
   */
 trait Api {
   def fetchPathsUnder(dir: DirPathRef): Either[LookupError, Seq[PathRef]]

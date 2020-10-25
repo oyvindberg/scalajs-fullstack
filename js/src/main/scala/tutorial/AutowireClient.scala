@@ -16,7 +16,7 @@ object AutowireClient extends autowire.Client[String, Reader, Writer] {
   override def doCall(req: Request): Future[String] =
     Ajax
       .post(
-        url  = s"api/${req.path.mkString("/")}",
+        url = s"api/${req.path.mkString("/")}",
         data = default.write(req.args.toSeq)
       )
       .map(req => req.responseText)

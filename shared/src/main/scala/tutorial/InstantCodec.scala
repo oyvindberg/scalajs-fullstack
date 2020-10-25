@@ -4,8 +4,7 @@ import java.time.Instant
 
 import upickle.default.{Reader, Writer}
 
-/**
-  * These needs to be in scope to use `Instant` with upickle (json) and autowire
+/** These needs to be in scope to use `Instant` with upickle (json) and autowire
   */
 object InstantCodec {
   implicit val InstantReader: Reader[Instant] =

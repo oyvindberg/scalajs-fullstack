@@ -2,8 +2,7 @@ package tutorial
 
 import upickle.default.{Reader, Writer, read => readJson, write => writeJson}
 
-/**
-  * Since we are using micro-libraries, it often falls to the
+/** Since we are using micro-libraries, it often falls to the
   * user to do the integration between them.
   *
   * This needs to be done for every combination of
@@ -26,8 +25,7 @@ object AutowireAkkaHttpRoute {
   import akka.http.scaladsl.server.Directives._
   import akka.http.scaladsl.server._
 
-  /**
-    * @param f Need to expose this to user in order to not break macro
+  /** @param f Need to expose this to user in order to not break macro
     * @return Akka Http route
     */
   def apply(uri: PathMatcher[Unit], f: AutowireUpickleServer.type => AutowireUpickleServer.Router): Route =

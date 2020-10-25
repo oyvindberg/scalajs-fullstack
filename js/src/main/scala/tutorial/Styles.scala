@@ -24,10 +24,9 @@ object Styles extends StyleSheet.Inline {
 
   /** Style requiring an Int when applied. */
   val indent: (Int) => StyleA =
-    styleF.int(0 to 3)(
-      i =>
-        styleS(
-          paddingLeft(i * 2.ex)
+    styleF.int(0 to 3)(i =>
+      styleS(
+        paddingLeft(i * 2.ex)
       )
     )
 }

@@ -9,8 +9,10 @@ import scalatags.JsDom.TypedTag
 import scalatags.JsDom.all._
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
-final class FileBrowser(remoteFetchPaths: DirPathRef => Future[Either[LookupError, Seq[PathRef]]],
-                        updateDom:        TypedTag[HTMLElement] => Unit) {
+final class FileBrowser(
+    remoteFetchPaths: DirPathRef => Future[Either[LookupError, Seq[PathRef]]],
+    updateDom:        TypedTag[HTMLElement] => Unit
+) {
 
   def setState(state: FileBrowser.State): Unit =
     updateDom(FileBrowser.render(state, path => () => fetchPathsUnder(path)))
@@ -26,8 +28,9 @@ final class FileBrowser(remoteFetchPaths: DirPathRef => Future[Either[LookupErro
     }
   }
 
-  def newState[T](wantedPath: DirPathRef,
-                  result:     Try[Either[LookupError, T]])(success: T => FileBrowser.State): FileBrowser.State = {
+  def newState[T](wantedPath: DirPathRef, result: Try[Either[LookupError, T]])(
+      success:                T => FileBrowser.State
+  ): FileBrowser.State = {
 
     def error(msg: String): FileBrowser.State =
       FileBrowser.Error(msg, () => fetchPathsUnder(wantedPath))
@@ -63,7 +66,7 @@ object FileBrowser {
 
   case object Loading extends State
   case class AtDir(path: DirPathRef, dirContents: Seq[PathRef]) extends State
-  case class Error(msg:  String, retry:           () => Unit) extends State
+  case class Error(msg: String, retry: () => Unit) extends State
 
   def render(state: FileBrowser.State, fetchDir: DirPathRef => () => Unit): TypedTag[HTMLElement] =
     state match {
@@ -87,18 +90,16 @@ object FileBrowser {
             div(
               `class` := "list-group",
               div(
-                refs.collect {
-                  case dir @ DirRef(parent, dirName) =>
-                    button(dirName, `type` := "button", `class` := "list-group-item", onclick := fetchDir(dir))
+                refs.collect { case dir @ DirRef(parent, dirName) =>
+                  button(dirName, `type` := "button", `class` := "list-group-item", onclick := fetchDir(dir))
                 },
-                refs.collect {
-                  case file @ FileRef(parent, fileName) =>
-                    a(
-                      `class` := "list-group-item",
-                      span(`class` := "glyphicon glyphicon-file"),
-                      fileName,
-                      cursor := "pointer"
-                    )
+                refs.collect { case file @ FileRef(parent, fileName) =>
+                  a(
+                    `class` := "list-group-item",
+                    span(`class` := "glyphicon glyphicon-file"),
+                    fileName,
+                    cursor := "pointer"
+                  )
                 }
               )
             )
