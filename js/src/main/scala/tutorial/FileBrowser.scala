@@ -19,7 +19,7 @@ import scala.util.{Failure, Success}
 @react
 object FileBrowser {
   case class Props(
-      remoteFetchPaths: DirPathRef => Future[Either[LookupError, Seq[PathRef]]]
+      remoteFetchPaths: PathRef.DirectoryLike => Future[Either[LookupError, Seq[PathRef.NotRoot]]]
   )
 
   sealed trait State {
@@ -33,14 +33,14 @@ object FileBrowser {
 
   object State {
     case object Loading extends State
-    case class AtDir(path: DirPathRef, dirContents: js.Array[PathRef]) extends State
+    case class AtDir(dir: PathRef.DirectoryLike, dirContents: js.Array[PathRef.NotRoot]) extends State
     case class Error(msg: String, retry: () => Unit) extends State
   }
 
   val component = FunctionalComponent[Props] { props =>
     val (state, setState) = Hooks.useState[State](State.Loading)
 
-    def fetch(wantedPath: DirPathRef): Future[Unit] = {
+    def fetch(wantedPath: PathRef.DirectoryLike): Future[Unit] = {
       setState(State.Loading)
 
       props.remoteFetchPaths(wantedPath).transform { result =>
@@ -66,7 +66,7 @@ object FileBrowser {
     }
 
     // initial load
-    Hooks.useEffect(() => fetch(RootRef), List())
+    Hooks.useEffect(() => fetch(PathRef.RootRef), List())
 
     state match {
       case State.AtDir(path, refs) =>
@@ -81,15 +81,13 @@ object FileBrowser {
             .dataSource(refs)
             .itemLayout(ListItemLayout.horizontal)
             .renderItem {
-              case (RootRef, _) =>
-                "/"
-              case (dir @ DirRef(_, dirName), _) =>
+              case (dir @ PathRef.Directory(_, dirName), _) =>
                 val meta = antd.List.Item.Meta
                   .title(antd.Typography.Link(dirName))
                   .avatar(AntdIcon(FolderOutlineIcon))
 
                 antd.List.Item.withKey(dirName)(meta).onClick(_ => fetch(dir)).build
-              case (FileRef(_, fileName), _) =>
+              case (PathRef.File(_, fileName), _) =>
                 val meta = antd.List.Item.Meta
                   .title(antd.Typography.Text(fileName))
                   .avatar(AntdIcon(FileOutlineIcon))

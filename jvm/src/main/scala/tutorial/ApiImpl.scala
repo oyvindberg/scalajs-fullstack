@@ -6,7 +6,7 @@ import java.time.Instant
 
 case class ApiImpl(sandbox: File) extends Api {
 
-  override def fetchPathsUnder(path: DirPathRef): Either[LookupError, Seq[PathRef]] =
+  override def fetchPathsUnder(path: PathRef.DirectoryLike): Either[LookupError, Seq[PathRef.NotRoot]] =
     parsePathToFile(path) match {
       case Left(notFound) =>
         Left(notFound)
@@ -19,10 +19,10 @@ case class ApiImpl(sandbox: File) extends Api {
         Right(
           filesUnder
             .collect {
-              case f if f.isDirectory => DirRef(path, f.getName)
-              case f if f.isFile      => FileRef(path, f.getName)
+              case f if f.isDirectory => PathRef.Directory(path, f.getName)
+              case f if f.isFile      => PathRef.File(path, f.getName)
             }
-            .sortBy(f => (f.isInstanceOf[FileRef], f.name))
+            .sortBy(f => (f.isInstanceOf[PathRef.File], f.name))
         )
 
       case outsideSandbox =>
@@ -37,11 +37,11 @@ case class ApiImpl(sandbox: File) extends Api {
 
   def parsePathToFile(loc: PathRef): Either[LookupNotFound.type, File] =
     loc match {
-      case RootRef =>
+      case PathRef.RootRef =>
         Right(sandbox)
-      case FileRef(parent, name) =>
+      case PathRef.File(parent, name) =>
         existingFile(parent, name)
-      case DirRef(parent, name) =>
+      case PathRef.Directory(parent, name) =>
         existingFile(parent, name)
     }
 
