@@ -6,17 +6,17 @@ import java.time.Instant
 
 case class ApiImpl(sandbox: File) extends Api {
 
-  override def fetchPathsUnder(path: PathRef.DirectoryLike): Either[LookupError, Seq[PathRef.NotRoot]] =
+  override def fetchPathsUnder(path: PathRef.DirectoryLike): LookupResult =
     parsePathToFile(path) match {
       case Left(notFound) =>
-        Left(notFound)
+        notFound
 
       //lets pretend this is good enough
       case Right(file) if file.getAbsolutePath.startsWith(sandbox.getAbsolutePath) =>
         val filesUnder: Seq[File] =
           Option(file.list()).toSeq.flatten.map(new File(file, _))
 
-        Right(
+        LookupResult.Ok(
           filesUnder
             .collect {
               case f if f.isDirectory => PathRef.Directory(path, f.getName)
@@ -26,7 +26,7 @@ case class ApiImpl(sandbox: File) extends Api {
         )
 
       case outsideSandbox =>
-        Left(LookupAccessDenied)
+        LookupResult.AccessDenied
     }
 
   def lastModified(f: File): Instant =
@@ -35,7 +35,7 @@ case class ApiImpl(sandbox: File) extends Api {
   def readFile(file: File): String =
     new String(Files.readAllBytes(file.toPath), "UTF-8")
 
-  def parsePathToFile(loc: PathRef): Either[LookupNotFound.type, File] =
+  def parsePathToFile(loc: PathRef): Either[LookupResult.NotFound.type, File] =
     loc match {
       case PathRef.RootRef =>
         Right(sandbox)
@@ -45,13 +45,13 @@ case class ApiImpl(sandbox: File) extends Api {
         existingFile(parent, name)
     }
 
-  def existingFile(parent: PathRef, name: String): Either[LookupNotFound.type, File] =
+  def existingFile(parent: PathRef, name: String): Either[LookupResult.NotFound.type, File] =
     parsePathToFile(parent).flatMap { parentFile =>
       new File(parentFile, name) match {
         case f if f.exists =>
           Right(f)
         case _ =>
-          Left(LookupNotFound)
+          Left(LookupResult.NotFound)
       }
     }
 }

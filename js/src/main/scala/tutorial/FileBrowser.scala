@@ -18,9 +18,7 @@ import scala.util.{Failure, Success}
 
 @react
 object FileBrowser {
-  case class Props(
-      remoteFetchPaths: PathRef.DirectoryLike => Future[Either[LookupError, Seq[PathRef.NotRoot]]]
-  )
+  case class Props(remoteFetchPaths: PathRef.DirectoryLike => Future[LookupResult])
 
   sealed trait State {
     def pathOpt: Option[PathRef] =
@@ -48,13 +46,13 @@ object FileBrowser {
           State.Error(msg, () => fetch(wantedPath))
 
         val nextState = result match {
-          case Success(Right(dirContents)) =>
+          case Success(LookupResult.Ok(dirContents)) =>
             State.AtDir(wantedPath, dirContents.toJSArray)
 
-          case Success(Left(LookupNotFound)) =>
+          case Success(LookupResult.NotFound) =>
             error(s"$wantedPath was not found")
 
-          case Success(Left(LookupAccessDenied)) =>
+          case Success(LookupResult.AccessDenied) =>
             error(s"Access denied to $wantedPath")
 
           case Failure(throwable) =>
