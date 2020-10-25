@@ -12,7 +12,8 @@ import scala.scalajs.js.annotation.JSImport
 object App {
   implicit val ec = scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
-  @JSImport("./assets/img/logo.svg", JSImport.Default)
+
+  @JSImport("./assets/img/logo.png", JSImport.Default)
   @js.native
   val Logo: String = js.native
 
@@ -25,7 +26,7 @@ object App {
 
     ReactDOM.render(
       div(
-        header(img.src(Logo)).style(CSSProperties().setWidth("300px").setPadding("25px")),
+        header(img.src(Logo).height(100)).style(CSSProperties().setPadding("25px")),
         FileBrowser(remoteFetchPaths = path => AutowireClient[Api].fetchPathsUnder(path).call())
       ),
       dom.document.body
