@@ -4,8 +4,8 @@
 
 ## TLDR
 ```
-git clone https://github.com/oyvindberg/scalajs-workshop.git
-cd scalajs-workshop
+git clone https://github.com/oyvindberg/scalajs-fullstack.git
+cd scalajs-fullstack
 ./sbt
 dev
 ```
@@ -19,19 +19,17 @@ Look at **Suggestions** at the bottom
 This project consists of a simple file browser that uses
  [Akka Http](https://doc.akka.io/docs/akka-http/current/)
  on the backend, and
- [Scala.js](https://www.scala-js.org/)
- with [Bootstrap](https://getbootstrap.com) for the frontend code.
+ [Scala.js](https://www.scala-js.org/), 
+ [Slinky](https://slinky.dev)
+ [ScalablyTyped](https://scalablytyped.org)
+ and [Antd](https://ant.design/) for the frontend code.
 
 Furthermore, we use the [«Li Haoyi stack»](https://github.com/lihaoyi) for
  type-safe Ajax calls ([Autowire](https://github.com/lihaoyi/autowire)),
- html templating ([ScalaTags](https://github.com/lihaoyi/scalatags)),
  json serialization ([uPickle](https://github.com/lihaoyi/upickle))
  and testing ([uTest](https://github.com/lihaoyi/utest)).
 
  These are all examples of good micro-libraries that are cross-compiled for Scala.js
-
-We also use typed wrappers for javascript APIs, notably
-[Scala.js DOM](http://scala-js.github.io/scala-js-dom/)
 
 ## Development
 
@@ -58,17 +56,6 @@ Usage is just running either of those commands:
 ```
 sbt> fastOptJS
 sbt> fullOptJS
-```
-
-#### Resulting files
-```
-bash> ls js/target/scala-2.12/scalajs-bundler/main
-2,3M tutorial-fastopt-bundle.js       <-- Result of bundling fastOptJS build with dependencies
-2,7M tutorial-fastopt-bundle.js.map   <-- Source map of bundle above 
-2,1M tutorial-fastopt.js              <-- Result of fastOptJS
-668K tutorial-opt-bundle.js           <-- Result of bundling fullOptJS build with dependencies  
-876K tutorial-opt-bundle.js.map       <-- Source map of bundle above
-450K tutorial-opt.js                  <-- Result of fullOptJS
 ```
 
 ### Rapid development
@@ -130,9 +117,9 @@ sbt> tutorialJS/test
 You can build a fatjar which is executable and will serve frontend contents as well:
 ```
 sbt>tutorialJVM/assembly
-# [info] Packaging .../jvm/target/scala-2.12/tutorial-assembly-0.1.0-SNAPSHOT.jar ...
+# [info] Packaging .../jvm/target/scala-2.13/tutorial-assembly-0.1.0-SNAPSHOT.jar ...
 
-shell> java -jar .../jvm/target/scala-2.12/tutorial-assembly-0.1.0-SNAPSHOT.jar 
+shell> java -jar .../jvm/target/scala-2.13/tutorial-assembly-0.1.0-SNAPSHOT.jar 
 ```
 
 ## Ideas

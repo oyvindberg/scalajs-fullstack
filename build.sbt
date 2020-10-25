@@ -1,15 +1,17 @@
+import org.scalajs.linker.interface.ModuleKind.CommonJSModule
+
 lazy val tutorial =
   crossProject(JSPlatform, JVMPlatform)
     .in(file("."))
-    .configure(baseSettings)
     .settings(
+      organization := "com.olvind",
+      scalaVersion := "2.13.3",
+      scalacOptions ++= Seq("-encoding", "UTF-8", "-feature", "-unchecked", "-Xlint", "-deprecation"),
+      testFrameworks += new TestFramework("utest.runner.Framework"),
       /* shared dependencies */
       libraryDependencies ++= Seq(
-        "com.github.japgolly.scalacss" %%% "core" % "0.6.1",
-        "com.github.japgolly.scalacss" %%% "ext-scalatags" % "0.6.1",
         "com.lihaoyi" %%% "upickle" % "1.2.2",
         "com.lihaoyi" %%% "autowire" % "0.3.2",
-        "com.lihaoyi" %%% "scalatags" % "0.9.2",
         "com.lihaoyi" %%% "utest" % "0.7.5" % Test
       )
     )
@@ -30,7 +32,7 @@ lazy val tutorialJvm: Project =
 
 lazy val tutorialJs: Project =
   tutorial.js
-    .enablePlugins(ScalaJSBundlerPlugin)
+    .enablePlugins(ScalablyTypedConverterPlugin)
     .settings(
       name := "tutorialJS",
       webpackDevServerPort := 8081,
@@ -38,22 +40,22 @@ lazy val tutorialJs: Project =
       scalaJSUseMainModuleInitializer := true,
       useYarn := true,
       /* disabled because it somehow triggers many warnings */
-      scalaJSLinkerConfig := scalaJSLinkerConfig.value.withSourceMap(false),
+      scalaJSLinkerConfig := scalaJSLinkerConfig.value.withSourceMap(false).withModuleKind(CommonJSModule),
       /* scala.js dependencies */
       libraryDependencies ++= Seq(
-        "org.scala-js" %%% "scalajs-dom" % "1.1.0",
+        "me.shadaj" %% "slinky-core-ijext" % "0.6.6", // needs this for the intellij integration to work
       ),
       /* javascript dependencies */
       Compile / npmDependencies ++= Seq(
-        "bootstrap" -> "4.5.3",
+        "antd" -> "4.7.3",
         "react" -> "17.0.1",
         "react-dom" -> "17.0.1",
-        "@types/bootstrap" -> "5.0.0",
         "@types/react" -> "16.9.53",
         "@types/react-dom" -> "16.9.8",
       ),
       /* custom webpack file */
       Compile / webpackConfigFile := Some((ThisBuild / baseDirectory).value / "custom.webpack.config.js"),
+      Compile / fastOptJS / webpackDevServerExtraArgs += "--mode=development",
       /* dependencies for custom webpack file */
       Compile / npmDevDependencies ++= Seq(
         "webpack-merge" -> "5.2.0",
@@ -70,15 +72,11 @@ lazy val tutorialJs: Project =
         "source-map-support" -> "0.5.19"
       ),
       Test / requireJsDomEnv := true,
+      stIgnore += "source-map-support",
+      stFlavour := Flavour.Slinky,
+      stReactEnableTreeShaking := Selection.All,
+      scalacOptions += "-Ymacro-annotations",
     )
-
-lazy val baseSettings: Project => Project =
-  _.settings(
-    organization := "com.olvind",
-    scalaVersion := "2.13.3",
-    scalacOptions ++= Seq("-encoding", "UTF-8", "-feature", "-unchecked", "-Xlint", "-deprecation"),
-    testFrameworks += new TestFramework("utest.runner.Framework"),
-  )
 
 def cmd(name: String, commands: String*) =
   Command.command(name)(s => s.copy(remainingCommands = commands.toList.map(cmd => Exec(cmd, None)) ++ s.remainingCommands))

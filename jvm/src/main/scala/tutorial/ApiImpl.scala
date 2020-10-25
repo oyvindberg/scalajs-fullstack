@@ -22,7 +22,7 @@ case class ApiImpl(sandbox: File) extends Api {
               case f if f.isDirectory => DirRef(path, f.getName)
               case f if f.isFile      => FileRef(path, f.getName)
             }
-            .sortBy(_.name)
+            .sortBy(f => (f.isInstanceOf[FileRef], f.name))
         )
 
       case outsideSandbox =>
@@ -46,7 +46,7 @@ case class ApiImpl(sandbox: File) extends Api {
     }
 
   def existingFile(parent: PathRef, name: String): Either[LookupNotFound.type, File] =
-    parsePathToFile(parent).right.flatMap { parentFile =>
+    parsePathToFile(parent).flatMap { parentFile =>
       new File(parentFile, name) match {
         case f if f.exists =>
           Right(f)

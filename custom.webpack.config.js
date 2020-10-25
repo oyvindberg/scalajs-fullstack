@@ -1,4 +1,3 @@
-var path = require('path');
 var { merge } = require('webpack-merge');
 var generated = require('./scalajs.webpack.config');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -28,11 +27,6 @@ var local = {
         }
     },
     devtool: "source-map",
-    resolve: {
-        alias: {
-            "assets": path.resolve(__dirname, "../../../../src/main/assets")
-        }
-    },
     plugins: [new HtmlWebpackPlugin()]
 };
 

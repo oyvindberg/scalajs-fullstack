@@ -1,116 +1,111 @@
 package tutorial
 
-import org.scalajs.dom.raw.HTMLElement
+import slinky.core.FunctionalComponent
+import slinky.core.annotations.react
+import slinky.core.facade.Hooks
+import typings.antDesignIcons.components.AntdIcon
+import typings.antDesignIconsSvg.fileOutlinedMod.{default => FileOutlineIcon}
+import typings.antDesignIconsSvg.folderOutlinedMod.{default => FolderOutlineIcon}
+import typings.antd.listMod.ListItemLayout
+import typings.antd.{antdStrings, components => antd}
+import typings.react.components._
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
-import scalacss.ScalatagsCss._
-import scalatags.JsDom.TypedTag
-import scalatags.JsDom.all._
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
+import scala.scalajs.js
+import scala.scalajs.js.JSConverters._
+import scala.util.{Failure, Success}
 
-final class FileBrowser(
-    remoteFetchPaths: DirPathRef => Future[Either[LookupError, Seq[PathRef]]],
-    updateDom:        TypedTag[HTMLElement] => Unit
-) {
-
-  def setState(state: FileBrowser.State): Unit =
-    updateDom(FileBrowser.render(state, path => () => fetchPathsUnder(path)))
-
-  def fetchPathsUnder(wantedPath: DirPathRef): Future[Unit] = {
-    setState(FileBrowser.Loading)
-
-    remoteFetchPaths(wantedPath).transform { (result: Try[Either[LookupError, Seq[PathRef]]]) =>
-      val state: FileBrowser.State =
-        newState(wantedPath, result)(dirContents => FileBrowser.AtDir(wantedPath, dirContents))
-
-      Success(setState(state))
-    }
-  }
-
-  def newState[T](wantedPath: DirPathRef, result: Try[Either[LookupError, T]])(
-      success:                T => FileBrowser.State
-  ): FileBrowser.State = {
-
-    def error(msg: String): FileBrowser.State =
-      FileBrowser.Error(msg, () => fetchPathsUnder(wantedPath))
-
-    result match {
-      case Success(Right(t)) =>
-        success(t)
-
-      case Success(Left(LookupNotFound)) =>
-        error(s"$wantedPath was not found")
-
-      case Success(Left(LookupAccessDenied)) =>
-        error(s"Access denied to $wantedPath")
-
-      case Failure(throwable) =>
-        error(s"Unexpected error: ${throwable.getMessage}")
-    }
-  }
-
-  /* initialize */
-  fetchPathsUnder(RootRef)
-}
-
+@react
 object FileBrowser {
+  case class Props(
+      remoteFetchPaths: DirPathRef => Future[Either[LookupError, Seq[PathRef]]]
+  )
+
   sealed trait State {
     def pathOpt: Option[PathRef] =
       this match {
-        case AtDir(path, _) => Some(path)
-        case Error(_, _)    => None
-        case Loading        => None
+        case State.AtDir(path, _) => Some(path)
+        case State.Error(_, _)    => None
+        case State.Loading        => None
       }
   }
 
-  case object Loading extends State
-  case class AtDir(path: DirPathRef, dirContents: Seq[PathRef]) extends State
-  case class Error(msg: String, retry: () => Unit) extends State
+  object State {
+    case object Loading extends State
+    case class AtDir(path: DirPathRef, dirContents: js.Array[PathRef]) extends State
+    case class Error(msg: String, retry: () => Unit) extends State
+  }
 
-  def render(state: FileBrowser.State, fetchDir: DirPathRef => () => Unit): TypedTag[HTMLElement] =
+  val component = FunctionalComponent[Props] { props =>
+    val (state, setState) = Hooks.useState[State](State.Loading)
+
+    def fetch(wantedPath: DirPathRef): Future[Unit] = {
+      setState(State.Loading)
+
+      props.remoteFetchPaths(wantedPath).transform { result =>
+        def error(msg: String): State.Error =
+          State.Error(msg, () => fetch(wantedPath))
+
+        val nextState = result match {
+          case Success(Right(dirContents)) =>
+            State.AtDir(wantedPath, dirContents.toJSArray)
+
+          case Success(Left(LookupNotFound)) =>
+            error(s"$wantedPath was not found")
+
+          case Success(Left(LookupAccessDenied)) =>
+            error(s"Access denied to $wantedPath")
+
+          case Failure(throwable) =>
+            error(s"Unexpected error: ${throwable.getMessage}")
+        }
+
+        Success(setState(nextState))
+      }
+    }
+
+    // initial load
+    Hooks.useEffect(() => fetch(RootRef), List())
+
     state match {
-      case FileBrowser.AtDir(path, refs) =>
+      case State.AtDir(path, refs) =>
         div(
-          /* reference a scalacss style */
-          Styles.myStyle,
-          div(
-            `class` := "panel-heading",
-            h1("Currently browsing ", path.toString),
-            div(
-              `class` := "btn-toolbar",
-              state.pathOpt
-                .flatMap(_.parentOpt)
-                .map(parent => Bootstrap.btn("Back", fetchDir(parent))),
-              Bootstrap.btn("Refresh", fetchDir(path))
-            )
-          ),
-          div(
-            `class` := "panel-body",
-            div(
-              `class` := "list-group",
-              div(
-                refs.collect { case dir @ DirRef(parent, dirName) =>
-                  button(dirName, `type` := "button", `class` := "list-group-item", onclick := fetchDir(dir))
-                },
-                refs.collect { case file @ FileRef(parent, fileName) =>
-                  a(
-                    `class` := "list-group-item",
-                    span(`class` := "glyphicon glyphicon-file"),
-                    fileName,
-                    cursor := "pointer"
-                  )
-                }
-              )
-            )
-          )
+          antd.Typography.Title("Currently browsing", path.toString),
+          state.pathOpt.flatMap(_.parentOpt).map { parent =>
+            antd.Button.onClick(_ => fetch(parent))("Back")
+          },
+          antd.Button.onClick(_ => fetch(path))("Refresh"),
+          antd
+            .List()
+            .dataSource(refs)
+            .itemLayout(ListItemLayout.horizontal)
+            .renderItem {
+              case (RootRef, _) =>
+                "/"
+              case (dir @ DirRef(_, dirName), _) =>
+                val meta = antd.List.Item.Meta
+                  .title(antd.Typography.Link(dirName))
+                  .avatar(AntdIcon(FolderOutlineIcon))
+
+                antd.List.Item.withKey(dirName)(meta).onClick(_ => fetch(dir)).build
+              case (FileRef(_, fileName), _) =>
+                val meta = antd.List.Item.Meta
+                  .title(antd.Typography.Text(fileName))
+                  .avatar(AntdIcon(FileOutlineIcon))
+
+                antd.List.Item.withKey(fileName)(meta)
+            }
         )
 
-      case FileBrowser.Loading =>
-        h2("Loading")
+      case State.Loading =>
+        antd.Typography.Title("Loading")
 
-      case FileBrowser.Error(msg, retry) =>
-        Bootstrap.alert(AlertMode.danger, retry, msg)
-
+      case State.Error(msg, retry) =>
+        antd.Alert
+          .`type`(antdStrings.warning)
+          .onClick(_ => retry())
+          .message(msg)
     }
+  }
 }
