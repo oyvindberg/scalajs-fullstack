@@ -8,28 +8,23 @@ import scalatags.JsDom.TypedTag
 import scalatags.JsDom.all._
 import tutorial.CssSettings._
 
-import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
 object App {
+  implicit val ec = scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
+
   @JSImport("bootstrap/dist/css/bootstrap.css", JSImport.Namespace)
   @js.native
-  object BootstrapCss extends js.Object
+  val BootstrapCss: String = js.native
 
-  @JSImport("assets/img/logo.svg", JSImport.Namespace)
+  @JSImport("assets/img/logo.svg", JSImport.Default)
   @js.native
-  object Logo extends js.Object
+  val Logo: String = js.native
 
-  val Header = header(
-    img(src := Logo.asInstanceOf[String]),
-    width := 300.px,
-    padding := 25.px
-  )
+  val Header = header(img(src := Logo), width := 300.px, padding := 25.px)
 
   def main(args: Array[String]): Unit = {
-    /* touch to include in build */
-    BootstrapCss
 
     /* outputs all the styles */
     dom.document.head.appendChild(Styles.render[TypedTag[HTMLStyleElement]].render)

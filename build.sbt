@@ -1,6 +1,3 @@
-// shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
-import sbtcrossproject.CrossPlugin.autoImport.crossProject
-
 lazy val tutorial =
   crossProject(JSPlatform, JVMPlatform)
     .in(file("."))
@@ -8,12 +5,12 @@ lazy val tutorial =
     .settings(
       /* shared dependencies */
       libraryDependencies ++= Seq(
-        "com.github.japgolly.scalacss" %%% "core" % "0.5.6",
-        "com.github.japgolly.scalacss" %%% "ext-scalatags" % "0.5.6",
-        "com.lihaoyi" %%% "upickle" % "0.7.5",
-        "com.lihaoyi" %%% "autowire" % "0.2.6",
-        "com.lihaoyi" %%% "scalatags" % "0.7.0",
-        "com.lihaoyi" %%% "utest" % "0.7.1" % Test
+        "com.github.japgolly.scalacss" %%% "core" % "0.6.1",
+        "com.github.japgolly.scalacss" %%% "ext-scalatags" % "0.6.1",
+        "com.lihaoyi" %%% "upickle" % "1.2.2",
+        "com.lihaoyi" %%% "autowire" % "0.3.2",
+        "com.lihaoyi" %%% "scalatags" % "0.9.2",
+        "com.lihaoyi" %%% "utest" % "0.7.5" % Test
       )
     )
 
@@ -24,8 +21,8 @@ lazy val tutorialJvm: Project =
       name := "tutorialJVM",
       /* Normal scala dependencies */
       libraryDependencies ++= Seq(
-        "com.typesafe.akka" %% "akka-http" % "10.1.9",
-        "com.typesafe.akka" %% "akka-stream" % "2.5.23",
+        "com.typesafe.akka" %% "akka-http" % "10.2.1",
+        "com.typesafe.akka" %% "akka-stream" % "2.6.10",
       ),
       scalaJSProjects := Seq(tutorialJs),
       Assets / pipelineStages := Seq(scalaJSPipeline)
@@ -41,35 +38,36 @@ lazy val tutorialJs: Project =
       scalaJSUseMainModuleInitializer := true,
       useYarn := true,
       /* disabled because it somehow triggers many warnings */
-      Compile / emitSourceMaps := false,
-      /* in preparation for scala.js 1.0 */
-      scalacOptions += "-P:scalajs:sjsDefinedByDefault",
+      scalaJSLinkerConfig := scalaJSLinkerConfig.value.withSourceMap(false),
       /* scala.js dependencies */
       libraryDependencies ++= Seq(
-        "org.scala-js" %%% "scalajs-dom" % "0.9.7",
-        "org.scala-js" %%% "scalajs-java-time" % "0.2.5"
+        "org.scala-js" %%% "scalajs-dom" % "1.1.0",
       ),
       /* javascript dependencies */
       Compile / npmDependencies ++= Seq(
-        "bootstrap" -> "4.3.1",
-        "jquery" -> "3.4.1",
+        "bootstrap" -> "4.5.3",
+        "react" -> "17.0.1",
+        "react-dom" -> "17.0.1",
+        "@types/bootstrap" -> "5.0.0",
+        "@types/react" -> "16.9.53",
+        "@types/react-dom" -> "16.9.8",
       ),
       /* custom webpack file */
       Compile / webpackConfigFile := Some((ThisBuild / baseDirectory).value / "custom.webpack.config.js"),
       /* dependencies for custom webpack file */
       Compile / npmDevDependencies ++= Seq(
-        "webpack-merge" -> "4.1",
-        "css-loader" -> "2.1.0",
-        "style-loader" -> "0.23.1",
-        "file-loader" -> "3.0.1",
-        "url-loader" -> "1.1.2",
-        "html-webpack-plugin" -> "3.2.0",
+        "webpack-merge" -> "5.2.0",
+        "css-loader" -> "5.0.0",
+        "style-loader" -> "2.0.0",
+        "file-loader" -> "6.1.1",
+        "url-loader" -> "4.1.1",
+        "html-webpack-plugin" -> "4.5.0",
       ),
       /* don't need to override anything for test. revisit this if you depend on code which imports resources,
           for instance (you probably shouldn't need to) */
       Test / webpackConfigFile := None,
       Test / npmDependencies ++= Seq(
-        "source-map-support" -> "0.5.13"
+        "source-map-support" -> "0.5.19"
       ),
       Test / requireJsDomEnv := true,
     )
@@ -77,8 +75,8 @@ lazy val tutorialJs: Project =
 lazy val baseSettings: Project => Project =
   _.settings(
     organization := "com.olvind",
-    scalaVersion := "2.12.9",
-    scalacOptions ++= Seq("-encoding", "UTF-8", "-feature", "-unchecked", "-Xlint", "-Yno-adapted-args", "-Xfuture", "-deprecation"),
+    scalaVersion := "2.13.3",
+    scalacOptions ++= Seq("-encoding", "UTF-8", "-feature", "-unchecked", "-Xlint", "-deprecation"),
     testFrameworks += new TestFramework("utest.runner.Framework"),
   )
 

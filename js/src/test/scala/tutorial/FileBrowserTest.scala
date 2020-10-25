@@ -15,11 +15,11 @@ object FileBrowserTest extends TestSuite {
 
   override def tests =
     Tests {
-      'RenderLoadingScreen {
+      "RenderLoadingScreen" -> {
         assert(FileBrowser.render(FileBrowser.Loading, IgnoreLookups) == h2("Loading"))
       }
 
-      'CanNavigateAndRenderCorrectly {
+      "CanNavigateAndRenderCorrectly" -> {
         var rendered: List[TypedTag[HTMLElement]] =
           Nil
 
@@ -31,7 +31,7 @@ object FileBrowserTest extends TestSuite {
             Right(Seq(SubDir))
           case SubDir =>
             Right(Seq.empty)
-          case other =>
+          case _ =>
             Left(LookupAccessDenied)
         }
 

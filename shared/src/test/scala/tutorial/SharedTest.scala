@@ -5,7 +5,7 @@ import utest._
 object SharedTest extends TestSuite {
   override def tests =
     Tests {
-      'works {
+      "works" - {
         assert(1 + 1 == 2)
       }
     }

@@ -1,5 +1,5 @@
 var path = require('path');
-var merge = require('webpack-merge');
+var { merge } = require('webpack-merge');
 var generated = require('./scalajs.webpack.config');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 
