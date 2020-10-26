@@ -4,6 +4,4 @@ package tutorial
   */
 trait Api {
   def fetchPathsUnder(dir: PathRef.DirectoryLike): LookupResult
-
-  //  def fetchFile(file: FileRef): Either[LookupError, String]
 }

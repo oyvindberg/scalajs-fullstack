@@ -31,7 +31,7 @@ object FileBrowser {
 
   object State {
     case object Loading extends State
-    case class AtDir(dir: PathRef.DirectoryLike, dirContents: js.Array[PathRef.NotRoot]) extends State
+    case class AtDir(dir: PathRef.DirectoryLike, contents: js.Array[PathRef.NotRoot]) extends State
     case class Error(msg: String, retry: () => Unit) extends State
   }
 
@@ -67,16 +67,16 @@ object FileBrowser {
     Hooks.useEffect(() => fetch(PathRef.RootRef), List())
 
     state match {
-      case State.AtDir(path, refs) =>
+      case State.AtDir(dir, contents) =>
         div(
-          antd.Typography.Title("Currently browsing", path.toString),
+          antd.Typography.Title("Currently browsing", dir.toString),
           state.pathOpt.flatMap(_.parentOpt).map { parent =>
             antd.Button.onClick(_ => fetch(parent))("Back")
           },
-          antd.Button.onClick(_ => fetch(path))("Refresh"),
+          antd.Button.onClick(_ => fetch(dir))("Refresh"),
           antd
             .List()
-            .dataSource(refs)
+            .dataSource(contents)
             .itemLayout(ListItemLayout.horizontal)
             .renderItem {
               case (dir @ PathRef.Directory(_, dirName), _) =>
@@ -84,7 +84,7 @@ object FileBrowser {
                   .title(antd.Typography.Link(dirName))
                   .avatar(AntdIcon(FolderOutlineIcon))
 
-                antd.List.Item.withKey(dirName)(meta).onClick(_ => fetch(dir)).build
+                antd.List.Item.withKey(dirName)(meta).onClick(_ => fetch(dir))
               case (PathRef.File(_, fileName), _) =>
                 val meta = antd.List.Item.Meta
                   .title(antd.Typography.Text(fileName))

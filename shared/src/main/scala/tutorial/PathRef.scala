@@ -29,8 +29,8 @@ object PathRef {
   implicit val rwFileRef:    RW[File]          = macroRW
   implicit val rwDirRef:     RW[Directory]     = macroRW
   implicit val rwDirPathRef: RW[DirectoryLike] = macroRW
-  implicit val rwPathRef:    RW[PathRef]       = macroRW
   implicit val rwNotRoot:    RW[NotRoot]       = macroRW
+  implicit val rwPathRef:    RW[PathRef]       = macroRW
 
   sealed trait DirectoryLike extends PathRef
   sealed trait NotRoot extends PathRef
