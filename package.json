@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "jsdom": "9.9.0",
-    "source-map-support": "^0.4.15"
-  }
-}

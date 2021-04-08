@@ -5,14 +5,14 @@ lazy val tutorial =
     .in(file("."))
     .settings(
       organization := "com.olvind",
-      scalaVersion := "2.13.3",
+      scalaVersion := "2.13.5",
       scalacOptions ++= Seq("-encoding", "UTF-8", "-feature", "-unchecked", "-Xlint", "-deprecation"),
       testFrameworks += new TestFramework("utest.runner.Framework"),
       /* shared dependencies */
       libraryDependencies ++= Seq(
-        "com.lihaoyi" %%% "upickle" % "1.2.2",
-        "com.lihaoyi" %%% "autowire" % "0.3.2",
-        "com.lihaoyi" %%% "utest" % "0.7.5" % Test
+        "com.lihaoyi" %%% "upickle" % "1.3.11",
+        "com.lihaoyi" %%% "autowire" % "0.3.3",
+        "com.lihaoyi" %%% "utest" % "0.7.8" % Test
       )
     )
 
@@ -23,8 +23,8 @@ lazy val tutorialJvm: Project =
       name := "tutorialJVM",
       /* Normal scala dependencies */
       libraryDependencies ++= Seq(
-        "com.typesafe.akka" %% "akka-http" % "10.2.1",
-        "com.typesafe.akka" %% "akka-stream" % "2.6.10",
+        "com.typesafe.akka" %% "akka-http" % "10.2.4",
+        "com.typesafe.akka" %% "akka-stream" % "2.6.14",
       ),
       scalaJSProjects := Seq(tutorialJs),
       Assets / pipelineStages := Seq(scalaJSPipeline)
@@ -41,17 +41,13 @@ lazy val tutorialJs: Project =
       useYarn := true,
       /* disabled because it somehow triggers many warnings */
       scalaJSLinkerConfig := scalaJSLinkerConfig.value.withSourceMap(false).withModuleKind(CommonJSModule),
-      /* scala.js dependencies */
-      libraryDependencies ++= Seq(
-        "me.shadaj" %% "slinky-core-ijext" % "0.6.6", // needs this for the intellij integration to work
-      ),
       /* javascript dependencies */
       Compile / npmDependencies ++= Seq(
-        "antd" -> "4.7.3",
-        "react" -> "17.0.1",
-        "react-dom" -> "17.0.1",
-        "@types/react" -> "16.9.53",
-        "@types/react-dom" -> "16.9.8",
+        "antd" -> "4.15.0",
+        "react" -> "17.0.2",
+        "react-dom" -> "17.0.2",
+        "@types/react" -> "17.0.3",
+        "@types/react-dom" -> "17.0.3",
       ),
       /* custom webpack file */
       Compile / webpackConfigFile := Some((ThisBuild / baseDirectory).value / "custom.webpack.config.js"),
@@ -72,7 +68,7 @@ lazy val tutorialJs: Project =
         "source-map-support" -> "0.5.19"
       ),
       Test / requireJsDomEnv := true,
-      stIgnore += "source-map-support",
+      stIgnore ++= List("source-map-support", "@babel/runtime"),
       stFlavour := Flavour.Slinky,
       stReactEnableTreeShaking := Selection.All,
       scalacOptions += "-Ymacro-annotations",

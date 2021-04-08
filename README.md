@@ -1,13 +1,12 @@
 # Scala.js example fullstack program
 
-[![Join the chat at https://gitter.im/oyvindberg/scalajs-workshop](https://badges.gitter.im/oyvindberg/scalajs-workshop.svg)](https://gitter.im/oyvindberg/scalajs-workshop?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 ## TLDR
 ```
-git clone https://github.com/oyvindberg/scalajs-fullstack.git
-cd scalajs-fullstack
-./sbt
-dev
+$ npm install -g yarn
+$ git clone https://github.com/oyvindberg/scalajs-fullstack.git
+$ cd scalajs-fullstack
+$ sbt
+sbt> dev
 ```
 
 Application served via `webpack-dev-server` at [http://localhost:8081](http://localhost:8081).
@@ -30,16 +29,6 @@ Furthermore, we use the [«Li Haoyi stack»](https://github.com/lihaoyi) for
  and testing ([uTest](https://github.com/lihaoyi/utest)).
 
  These are all examples of good micro-libraries that are cross-compiled for Scala.js
-
-## Development
-
-We bundle the [sbt-extras](https://github.com/paulp/sbt-extras)
-launcher for [sbt](https://github.com/sbt/sbt/) in the project,
-so you can start it by simply running:
-
-```
-bash> ./sbt
-```
 
 ### Compiling Scala.js
 
